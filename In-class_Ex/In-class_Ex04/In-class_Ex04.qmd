@@ -1,0 +1,104 @@
+---
+title: "In-class Exercise 4"
+author: "Leng Yi Xiu"
+date: "Sep 16 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+
+## Geographically Weighted GW model
+
+```{r}
+pacman::p_load(sf, ggstatsplot, spdep, tmap, tidyverse, knitr, GWmodel)
+```
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+::: {.callout-important appearance="simple"}
+No CSR projection for this - please note that you should normally do st_transform to get the CSR projection.
+:::
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+```{r}
+hunan_sf <- left_join(hunan,hunan2012)%>%
+  select(1:3, 6, 7, 15, 16, 31, 32)
+```
+
+::: {.callout-caution appearance="simple"}
+In order to do relational join:
+
+-   Ensure that there are common / same field names (i.e. even uppercase and lowercase **must** be the same for unique match)
+:::
+
+### Converting to SpatialPolygonDataFrame
+
+```{r}
+hunan_sp <- hunan_sf %>%
+  as_Spatial()
+```
+
+### Geographically Weighted Summary Statistics with adaptive bandwidth
+
+```{r}
+bw_CV <- bw.gwr(GDPPC ~ 1,
+                data = hunan_sp,
+                approach = "CV",
+                adaptive = TRUE,
+                kernel = "bisquare",
+                longlat = T)
+```
+
+```{r}
+bw_AIC <- bw.gwr(GDPPC ~ 1, 
+                 data = hunan_sp, 
+                 approach = "AIC", 
+                 kernel = "bisquare", 
+                 adaptive = TRUE, 
+                 longlat = TRUE)
+```
+
+### Computing geographically weighted summary statistics
+
+```{r}
+gwstat <- gwss(data = hunan_sp,
+               vars = "GDPPC",
+               bw = bw_AIC,
+               kernel = "bisquare",
+               adaptive = TRUE,
+               longlat =T)
+```
+
+### Preparing the output data
+
+```{r}
+gwstat_df <- as.data.frame(gwstat$SDF)
+```
+
+```{r}
+hunan_gstat <- cbind(hunan_sf, gwstat_df)
+```
+
+```{r}
+tm_shape(hunan_gstat) + 
+  tm_fill("GDPPC_LM",
+          n = 5,
+          style = "quantile") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Distribution of geographically weighted mean",
+            main.title.position = "center",
+            main.title.size = 1.0,
+            legend.text.size = 1.0,
+            legend.height = 1.50,
+            legend.width = 1.50,
+            frame = TRUE)
+```

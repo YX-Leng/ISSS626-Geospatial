@@ -1,0 +1,46 @@
+---
+title: "In-class Exercise 1"
+author: "Leng Yi Xiu"
+date: "Aug 20 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+
+```{r}
+pacman::p_load(sf, tmap, tidyverse, ggstatsplot)
+```
+
+## Importing data in shapefile form
+
+```{r}
+mpsz = st_read(dsn = "D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/In-class_Ex/In-class_Ex01/data", 
+                  layer = "MP14_SUBZONE_WEB_PL")
+```
+
+## Importing data in kml format
+
+::: callout-caution
+## Error in Data File
+
+Either data file is in zipped version, or data file is corrupted.
+:::
+
+```{r}
+st_write(mpsz,
+         "D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/In-class_Ex/In-class_Ex01/data/MP14_SUBZONE_WEB_PL.kml",
+         delete_dsn = TRUE)
+```
+
+## Reading the created data file in kml format
+
+```{r}
+mpsz_kml = st_read("D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/In-class_Ex/In-class_Ex01/data/MP14_SUBZONE_WEB_PL.kml")
+```
+
+```{r}
+mpsz19_kml = st_read("D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/In-class_Ex/In-class_Ex01/data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
+```

@@ -1,0 +1,66 @@
+---
+title: "In-class Exercise 2"
+author: "Leng Yi Xiu"
+date: "Sep 02 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+
+## Installing *`maptools`*
+
+```{r}
+#| eval: false
+install.packages("maptools", 
+                 repos = "https://packagemanager.posit.co/cran/2023-10-13")
+```
+
+```{r}
+pacman::p_load(sf, raster, spatstat, tmap, tidyverse)
+```
+
+```{r}
+childcare_sf <- st_read("D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/Hands-on_Ex/Hands-on_Ex02/data/child-care-services-geojson.geojson") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+sg_sf <- st_read(dsn = "D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/Hands-on_Ex/Hands-on_Ex02/data", layer="CostalOutline")
+```
+
+```{r}
+mpsz_sf <- st_read(dsn = "D:/2. SMU - MITB/Term 4/ISSS626 Geospatial/YX-Leng/ISSS626-Geospatial/Hands-on_Ex/Hands-on_Ex02/data", 
+                layer = "MP14_SUBZONE_WEB_PL")
+```
+
+## How to use st_union()
+
+```{r}
+mpsz_sf_simplified <- st_simplify(mpsz_sf, dTolerance = 0.01)
+sg_sf <- st_union(mpsz_sf_simplified)
+
+```
+
+```{r}
+plot(sg_sf, col = "white", main = "Union of sg_sf and mpsz_sf")
+```
+
+
+## Monte Carlo Simulation
+
+::: {.callout-important appearance="simple"}
+To ensure reproducibility, important to set seed before using spatial functions to involve monte carlo simulation.
+:::
+
+```{r}
+set.seed(1234)
+```
+
+## Edge Correction
+
+If we are looking at data points near the boundaries of a study region, edge correction is essential to eliminate bias and ensure accurate estimates.
+
+i.e. If we are looking at the entire Singapore map, then edge correction not needed. However, if we suspect edge effects, then should test for edge correction.

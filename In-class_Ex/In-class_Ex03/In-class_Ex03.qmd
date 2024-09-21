@@ -1,0 +1,12 @@
+---
+title: "In-class Exercise 3"
+author: "Leng Yi Xiu"
+date: "Sep 09 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+

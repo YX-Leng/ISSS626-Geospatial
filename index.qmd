@@ -1,0 +1,11 @@
+---
+title: "ISSS626 Geospatial Analytics and Applications"
+---
+
+Welcome to **ISSS626 Geospatial Analytics and Applications**. In this website, you will find my coursework prepared for this course.
+
+## What to Expect
+
+In this website, I will be sharing insights, hands-on exercises and projects related to geospatial analytics learnt from ISSS626 Geospatial Analytics and Applications.
+
+![*Smart City - Sustainable Urban Development*](images/Smart%20City.png){fig-align="center"}
