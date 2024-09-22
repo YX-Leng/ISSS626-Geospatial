@@ -259,7 +259,8 @@ lixels$density <- densities
 ## 4.5 Mapping Visualisation
 
 ```{r}
-tmap_mode('view')
+# changed to plot due to javascript memory error
+tmap_mode('plot')
 tm_shape(lixels)+
   tm_lines(col="density")+
 tm_shape(acc_weekend)+
@@ -317,7 +318,8 @@ lixels$density <- densities
 ## 4.5 Mapping Visualisation
 
 ```{r}
-tmap_mode('view')
+# changed to plot due to javascript memory error
+tmap_mode('plot')
 tm_shape(lixels)+
   tm_lines(col="density")+
 tm_shape(acc_weekday)+
