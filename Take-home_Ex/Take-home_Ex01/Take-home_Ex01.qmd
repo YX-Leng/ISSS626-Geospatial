@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: "Take-home Exercise 1: Geospatial Analytics for Public Good"
 author: "Leng Yi Xiu"
@@ -73,7 +74,8 @@ acc <- read_csv("data/rawdata/thai_road_accident_2019_2022.csv") %>%
 head(acc)
 ```
 
-2.  [Filter accident dataset by main cause of accidents]{.underline} As there can be many causes of traffic accidents, we shall zoom in on a single main cause for this exercise in order to better analyse the effects of temporal factors.
+2.  [Filter accident dataset by main cause of accidents]{.underline}
+As there can be many causes of traffic accidents, we shall zoom in on a single main cause for this exercise in order to better analyse the effects of temporal factors.
 
 ```{r}
 cause_counts <- acc %>%
@@ -111,21 +113,18 @@ province <- st_transform(thai, crs = 32647)
 
 head(province,5)
 ```
-
 3.  [Convert to POLYGON for better run-time during st_intersection]{.underline}
-
 ```{r}
 province <- st_cast(province, "POLYGON")
 
 head(province,5)
 ```
-
 4.  [Filter for provinces under BMR]{.underline}
 
     For this exercise, we are focusing on the factors contributing to road traffic accidents in BMR, hence we will need to filter the datasets further to only capture provinces in this area.
 
     The political definition of BMR is defined as **the metropolis (Bangkok)** and the five adjacent provinces of **Nakhon Pathom**, **Pathum Thani**, **Nonthaburi**, **Samut Prakan**, and **Samut Sakhon**.
-
+    
 ```{r}
 filtered_province <- province %>%
   filter(ADM1_EN %in% c("Bangkok", "Nakhon Pathom", "Pathum Thani", "Nonthaburi", "Samut Prakan", "Samut Sakhon"))
@@ -158,7 +157,6 @@ roads <- cbind(roads, coords_dfroad)
 ```
 
 2.  [Filtering for main roads in BMR]{.underline}
-
 ```{r}
 # Reduced road filters to only motorway and primary roads for analysis purposes
 roads_lines <- roads %>%  
@@ -169,7 +167,6 @@ roads_lines <- roads %>%
 ```
 
 3.  [Convert to LINESTRING]{.underline}
-
 ```{r}
 # To simplify roads dataset and reduce runtime for st_cast to LINESTRING
 # simple_roads <- st_simplify(roads_lines, dTolerance = 0.1) # dTolerance = 0.1, 10 or 100
@@ -201,7 +198,6 @@ filtered_acc <- st_intersection(filtered_province, acc)
 ```
 
 Split out geometry column to capture x and y coordinates in separate columns
-
 ```{r}
 coords <- st_coordinates(filtered_acc)
 coords_df <- as.data.frame(coords)  # convert to dataframe
@@ -209,7 +205,6 @@ filtered_acc_cbind <- cbind(filtered_acc, coords_df)
 ```
 
 Filter the day of week by weekday or weekend
-
 ```{r}
 acc_weekday <- filtered_acc_cbind %>%  
   filter(dayofweek %in% c("Monday", "Tuesday","Wednesday","Thursday","Friday"))
@@ -274,6 +269,7 @@ tm_shape(acc_weekend)+
 tmap_mode('plot')
 ```
 
+
 ```{r}
 #acc_weekend$L1 <- acc_weekend$province_en
 
@@ -331,3 +327,333 @@ tm_shape(acc_weekday)+
   tm_dots()
 tmap_mode('plot')
 ```
+=======
+---
+title: "Take-home Exercise 1: Geospatial Analytics for Public Good"
+author: "Leng Yi Xiu"
+date: "Sep 09 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+
+# 1 Overview
+
+According to the World Health Organisation (WHO), road traffic accidents claim approximately 1.19 million lives annually and cause 20-50 million non-fatal injuries, with vulnerable road users, such as pedestrians, cyclists, and motorcyclists, accounting for more than half of the fatalities. Road injuries are the leading cause of death for children and young adults (ages 5-29), and two-thirds of all fatalities occur among working-age individuals (18-59).
+
+Low- and middle-income countries experience 90% of these fatalities, despite having only 60% of the world’s vehicles, with road accidents costing nations 3% of their GDP.
+
+In Thailand, which has some of the deadliest roads globally, approximately 20,000 people die in road accidents each year. Between 2014 and 2021, 19% of these accidents occurred on national highways, with a 66% likelihood of accidents at identified 'black spots,' particularly on straight road segments.
+
+# 2 Objective of Task
+
+The key objective of this exercise is to analyze factors influencing road traffic accidents in the [`Bangkok Metropolitan Region (BMR)`](https://en.wikipedia.org/wiki/Bangkok_Metropolitan_Region) using spatial spatio-temporal point patterns analysis methods.
+
+Previous studies have demonstrated significant potential of Spatial Point Patterns Analysis, but focused on the main behavioural or environmental factors causing traffic accidents. Limited consideration have been given to temporal factors such as (i) season, (ii) day of the week or (iii) time of day.
+
+Specifically, this execise will involve the following objectives:
+
+1.  visualizing the spatio-temporal dynamics of road traffic accidents through statistical graphics and geovisualization techniques,
+
+2.  conducting detailed spatial analysis using Network Spatial Point Patterns Analysis methods, and
+
+3.  performing spatio-temporal analysis using Temporal Network Spatial Point Patterns Analysis methods.
+
+The goal is to explore both behavioral and environmental factors, as well as temporal influences such as season, day of the week, and time of day.
+
+# 3 Preparation & Geovisualisation
+
+## 3.1 Import Libraries for Use
+
+Load the necessary R packages needed for this study.
+
+```{r}
+pacman::p_load(sf, spNetwork, tmap, tidyverse)
+```
+
+## 3.2 Import and Setting Up the Data
+
+There are 3 datasets to be used for this exercise and all datasets need to be converted to a common Coordinate Reference System (crs) for Thailand.
+
+The 3 datasets are categorized as:
+
+::: panel-tabset
+## Aspatial: Thailand Road Accidents
+
+Dataset comprises of recorded road accidents in Thailand spanning from approximately 2019 to 2022. Information recorded include province, time of incident, day of week, vehicle type, presumed cause of accident, weather conditions and road/slope descriptions.
+
+1.  [Import csv file, create columns for month and day of week in numeric values and transform crs to 32647]{.underline}
+
+```{r}
+acc <- read_csv("data/rawdata/thai_road_accident_2019_2022.csv") %>%
+  filter(!is.na(longitude) & longitude != "", 
+         !is.na(latitude) & latitude != "") %>%
+  mutate(Month_num = month(incident_datetime)) %>%
+  mutate(Month_fac = month(incident_datetime, 
+                           label = TRUE,
+                           abbr = TRUE)) %>%
+  mutate(dayofweek = weekdays(incident_datetime)) %>%
+  st_as_sf(coords = c(
+    "longitude", "latitude"), crs=4326) %>%
+  st_transform(crs = 32647)
+
+head(acc)
+```
+
+2.  [Filter accident dataset by main cause of accidents]{.underline}
+As there can be many causes of traffic accidents, we shall zoom in on a single main cause for this exercise in order to better analyse the effects of temporal factors.
+
+```{r}
+cause_counts <- acc %>%
+  group_by(presumed_cause) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+print(cause_counts)
+```
+
+```{r}
+acc <- acc %>%
+  filter(presumed_cause %in% c("speeding"))
+```
+
+2.  [Save transformed data in rds folder]{.underline}
+
+```{r}
+write_rds(acc, "data/rds/acc.rds")
+```
+
+## Geospatial: Thailand Adminstrative Boundaries
+
+1.  [Import shapefile and read]{.underline}
+
+```{r}
+thai <- st_read(dsn = "data/rawdata/adm_boundaries_shp", layer = "tha_admbnda_adm1_rtsd_20220121")
+```
+
+2.  [Set crs to 4326 and transform it to 32647 for Thailand]{.underline}
+
+```{r}
+st_crs(thai) <- 4326 
+province <- st_transform(thai, crs = 32647)
+
+head(province,5)
+```
+3.  [Convert to POLYGON for better run-time during st_intersection]{.underline}
+```{r}
+province <- st_cast(province, "POLYGON")
+
+head(province,5)
+```
+4.  [Filter for provinces under BMR]{.underline}
+
+    For this exercise, we are focusing on the factors contributing to road traffic accidents in BMR, hence we will need to filter the datasets further to only capture provinces in this area.
+
+    The political definition of BMR is defined as **the metropolis (Bangkok)** and the five adjacent provinces of **Nakhon Pathom**, **Pathum Thani**, **Nonthaburi**, **Samut Prakan**, and **Samut Sakhon**.
+    
+```{r}
+filtered_province <- province %>%
+  filter(ADM1_EN %in% c("Bangkok", "Nakhon Pathom", "Pathum Thani", "Nonthaburi", "Samut Prakan", "Samut Sakhon"))
+```
+
+5.  [Save transformed data in rds folder]{.underline}
+
+```{r}
+write_rds(filtered_province, "data/rds/filtered_province.rds")
+```
+
+## Geospatial: Thailand Roads
+
+1.  [Import shapefile and read]{.underline}
+
+```{r}
+roads <- st_read(dsn = "data/rawdata/thailand_roads_shp", layer = "hotosm_tha_roads_lines_shp")
+```
+
+```{r}
+roads <- roads %>%
+  mutate(centroid = st_centroid(geometry)) %>%
+  st_as_sf() 
+```
+
+```{r}
+coords_road <- st_coordinates(roads$centroid)
+coords_dfroad <- as.data.frame(coords_road)  # convert to dataframe
+roads <- cbind(roads, coords_dfroad)
+```
+
+2.  [Filtering for main roads in BMR]{.underline}
+```{r}
+# Reduced road filters to only motorway and primary roads for analysis purposes
+roads_lines <- roads %>%  
+  filter(highway %in% c("motorway", "motorway_link", "primary", "primary_link"))
+         
+
+#"secondary","secondary_link","tertiary", "tertiary_link"))
+```
+
+3.  [Convert to LINESTRING]{.underline}
+```{r}
+# To simplify roads dataset and reduce runtime for st_cast to LINESTRING
+# simple_roads <- st_simplify(roads_lines, dTolerance = 0.1) # dTolerance = 0.1, 10 or 100
+simple_roads <- st_cast(roads_lines, "LINESTRING")
+```
+
+4.  [Set crs to 4326 and transform it to 32647 for Thailand]{.underline}
+
+```{r}
+st_crs(simple_roads) <- 4326 
+simple_roads <- st_transform(simple_roads, crs = 32647)
+
+head(simple_roads,5)
+```
+
+3.  [Save transformed data in rds folder]{.underline}
+
+```{r}
+write_rds(simple_roads, "data/rds/simple_roads.rds")
+```
+:::
+
+## 3.3 Merge datasets & filter out subset by days
+
+Use st_intersection to merge both the geospatial and aspatial dataset for province and accident records.
+
+```{r}
+filtered_acc <- st_intersection(filtered_province, acc)
+```
+
+Split out geometry column to capture x and y coordinates in separate columns
+```{r}
+coords <- st_coordinates(filtered_acc)
+coords_df <- as.data.frame(coords)  # convert to dataframe
+filtered_acc_cbind <- cbind(filtered_acc, coords_df)
+```
+
+Filter the day of week by weekday or weekend
+```{r}
+acc_weekday <- filtered_acc_cbind %>%  
+  filter(dayofweek %in% c("Monday", "Tuesday","Wednesday","Thursday","Friday"))
+acc_weekend <- filtered_acc_cbind %>%  
+  filter(dayofweek %in% c("Saturday","Sunday"))
+```
+
+# 4 Network KDE (NKDE) Analysis
+
+## 4.1 Prepare the lixels objects
+
+```{r}
+lixels <- lixelize_lines(simple_roads, 
+                         700,          # adjusted to reduce run-time
+                         mindist = 375) # adjusted to reduce run-time
+```
+
+## 4.2 Generating Line Centre Points
+
+```{r}
+samples <- lines_center(lixels) 
+```
+
+## 4.3 Performing NKDE for weekends
+
+```{r}
+densities <- nkde(simple_roads, 
+                  events = acc_weekend,
+                  w = rep(1, nrow(acc_weekend)), 
+                  samples = samples,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple")
+
+                  #digits = 1, 
+                  #tol = 1,
+                  #grid_shape = c(1,1), 
+                  #max_depth = 8,
+                  #agg = 2, # Reduced aggregation level
+                  #sparse = TRUE,
+                  #verbose = FALSE)
+
+```
+
+## 4.4 Visualising NKDE
+
+```{r}
+samples$density <- densities
+lixels$density <- densities
+```
+
+## 4.5 Mapping Visualisation
+
+```{r}
+# changed to plot due to javascript memory error
+tmap_mode('plot')
+tm_shape(lixels)+
+  tm_lines(col="density")+
+tm_shape(acc_weekend)+
+  tm_dots()
+tmap_mode('plot')
+```
+
+
+```{r}
+#acc_weekend$L1 <- acc_weekend$province_en
+
+#kfun_weekend <- kfunctions(simple_roads, 
+                             #acc_weekend,
+                             #start = 0, 
+                             #end = 1000, 
+                             #step = 50, 
+                             #width = 50, 
+                             #nsim = 50,
+                             #digits = 2,
+                             #tol = 1,
+                             #resolution = 50,
+                             #verbose = TRUE, 
+                             #conf_int = 0.05)
+```
+
+## 4.6 Performing NKDE for weekdays
+
+```{r}
+densities <- nkde(simple_roads, 
+                  events = acc_weekday,
+                  w = rep(1, nrow(acc_weekday)), 
+                  samples = samples,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple")
+
+                  #digits = 1, 
+                  #tol = 1,
+                  #grid_shape = c(1,1), 
+                  #max_depth = 8,
+                  #agg = 2, # Reduced aggregation level
+                  #sparse = TRUE,
+                  #verbose = FALSE)
+
+```
+
+## 4.4 Visualising NKDE
+
+```{r}
+samples$density <- densities
+lixels$density <- densities
+```
+
+## 4.5 Mapping Visualisation
+
+```{r}
+# changed to plot due to javascript memory error
+tmap_mode('plot')
+tm_shape(lixels)+
+  tm_lines(col="density")+
+tm_shape(acc_weekday)+
+  tm_dots()
+tmap_mode('plot')
+```
+>>>>>>> 96a79f79eb803d4548f3c548d19c29181c60172c
