@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Leng Yi Xiu">
-<meta name="dcterms.date" content="2024-09-09">
+<meta name="dcterms.date" content="2024-09-23">
 
-<title>ISSS626 Geospatial Analytics and Applications - Take-home Exercise 1: Geospatial Analytics for Public Good</title>
+<title>ISSS626 Geospatial Analytics and Applications - Hands-on Exercise 5</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,40 +21,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -199,26 +165,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">1 Overview</a></li>
-  <li><a href="#objective-of-task" id="toc-objective-of-task" class="nav-link" data-scroll-target="#objective-of-task">2 Objective of Task</a></li>
-  <li><a href="#preparation" id="toc-preparation" class="nav-link" data-scroll-target="#preparation">3 Preparation</a>
-  <ul class="collapse">
-  <li><a href="#import-libraries-for-use" id="toc-import-libraries-for-use" class="nav-link" data-scroll-target="#import-libraries-for-use">3.1 Import Libraries for Use</a></li>
-  <li><a href="#import-and-setting-up-the-data" id="toc-import-and-setting-up-the-data" class="nav-link" data-scroll-target="#import-and-setting-up-the-data">3.2 Import and Setting Up the Data</a></li>
-  </ul></li>
-  </ul>
-</nav>
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Take-home Exercise 1: Geospatial Analytics for Public Good</h1>
+<h1 class="title">Hands-on Exercise 5</h1>
 </div>
 
 
@@ -235,7 +189,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 9, 2024</p>
+      <p class="date">September 23, 2024</p>
     </div>
   </div>
   
@@ -253,75 +207,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="overview" class="level1">
-<h1>1 Overview</h1>
-<p>According to the World Health Organisation (WHO), road traffic accidents claim approximately 1.19 million lives annually and cause 20-50 million non-fatal injuries, with vulnerable road users, such as pedestrians, cyclists, and motorcyclists, accounting for more than half of the fatalities. Road injuries are the leading cause of death for children and young adults (ages 5-29), and two-thirds of all fatalities occur among working-age individuals (18-59).</p>
-<p>Low- and middle-income countries experience 90% of these fatalities, despite having only 60% of the world’s vehicles, with road accidents costing nations 3% of their GDP.</p>
-<p>In Thailand, which has some of the deadliest roads globally, approximately 20,000 people die in road accidents each year. Between 2014 and 2021, 19% of these accidents occurred on national highways, with a 66% likelihood of accidents at identified ‘black spots,’ particularly on straight road segments.</p>
-</section>
-<section id="objective-of-task" class="level1">
-<h1>2 Objective of Task</h1>
-<p>The key objective of this exercise is to analyze factors influencing road traffic accidents in the <a href="https://en.wikipedia.org/wiki/Bangkok_Metropolitan_Region"><code>Bangkok Metropolitan Region (BMR)</code></a> using spatial spatio-temporal point patterns analysis methods.</p>
-<p>Previous studies have demonstrated significant potential of Spatial Point Patterns Analysis, but focused on the main behavioural or environmental factors causing traffic accidents. Limited consideration have been given to temporal factors such as (i) season, (ii) day of the week or (iii) time of day.</p>
-<p>Specifically, this execise will involve the following objectives:</p>
-<ol type="1">
-<li><p>visualizing the spatio-temporal dynamics of road traffic accidents through statistical graphics and geovisualization techniques,</p></li>
-<li><p>conducting detailed spatial analysis using Network Spatial Point Patterns Analysis methods, and</p></li>
-<li><p>performing spatio-temporal analysis using Temporal Network Spatial Point Patterns Analysis methods.</p></li>
-</ol>
-<p>The goal is to explore both behavioral and environmental factors, as well as temporal influences such as season, day of the week, and time of day.</p>
-</section>
-<section id="preparation" class="level1">
-<h1>3 Preparation</h1>
-<section id="import-libraries-for-use" class="level2">
-<h2 class="anchored" data-anchor-id="import-libraries-for-use">3.1 Import Libraries for Use</h2>
-<p>Load the necessary R packages needed for this study.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, spNetwork, tmap, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="import-and-setting-up-the-data" class="level2">
-<h2 class="anchored" data-anchor-id="import-and-setting-up-the-data">3.2 Import and Setting Up the Data</h2>
-<p>Load the necessary R packages needed for this study.</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Aspatial</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Geospatial</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>acc <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/rawdata/thai_road_accident_2019_2022.csv"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Month_num =</span> <span class="fu">month</span>(incident_datetime)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Month_fac =</span> <span class="fu">month</span>(incident_datetime, </span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">label =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">abbr =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dayofweek =</span> <span class="fu">day</span>(incident_datetime))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Rows: 81735 Columns: 18
-── Column specification ────────────────────────────────────────────────────────
-Delimiter: ","
-chr  (10): province_th, province_en, agency, route, vehicle_type, presumed_c...
-dbl   (6): acc_code, number_of_vehicles_involved, number_of_fatalities, numb...
-dttm  (2): incident_datetime, report_datetime
-
-ℹ Use `spec()` to retrieve the full column specification for this data.
-ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>   <span class="co">#st_as_sf(coords = c("longitude" , "latitude"),</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                      <span class="co">#crs = 4326) %&gt;%</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#st_transform(crs = 32647)  ##confirm if this is for Thailand</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#write_rds(acc, "data/rds/acc.rds")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 
 
-</section>
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
