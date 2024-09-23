@@ -73,8 +73,7 @@ acc <- read_csv("data/rawdata/thai_road_accident_2019_2022.csv") %>%
 head(acc)
 ```
 
-2.  [Filter accident dataset by main cause of accidents]{.underline}
-As there can be many causes of traffic accidents, we shall zoom in on a single main cause for this exercise in order to better analyse the effects of temporal factors.
+2.  [Filter accident dataset by main cause of accidents]{.underline} As there can be many causes of traffic accidents, we shall zoom in on a single main cause for this exercise in order to better analyse the effects of temporal factors.
 
 ```{r}
 cause_counts <- acc %>%
@@ -112,18 +111,21 @@ province <- st_transform(thai, crs = 32647)
 
 head(province,5)
 ```
+
 3.  [Convert to POLYGON for better run-time during st_intersection]{.underline}
+
 ```{r}
 province <- st_cast(province, "POLYGON")
 
 head(province,5)
 ```
+
 4.  [Filter for provinces under BMR]{.underline}
 
     For this exercise, we are focusing on the factors contributing to road traffic accidents in BMR, hence we will need to filter the datasets further to only capture provinces in this area.
 
     The political definition of BMR is defined as **the metropolis (Bangkok)** and the five adjacent provinces of **Nakhon Pathom**, **Pathum Thani**, **Nonthaburi**, **Samut Prakan**, and **Samut Sakhon**.
-    
+
 ```{r}
 filtered_province <- province %>%
   filter(ADM1_EN %in% c("Bangkok", "Nakhon Pathom", "Pathum Thani", "Nonthaburi", "Samut Prakan", "Samut Sakhon"))
@@ -156,6 +158,7 @@ roads <- cbind(roads, coords_dfroad)
 ```
 
 2.  [Filtering for main roads in BMR]{.underline}
+
 ```{r}
 # Reduced road filters to only motorway and primary roads for analysis purposes
 roads_lines <- roads %>%  
@@ -166,6 +169,7 @@ roads_lines <- roads %>%
 ```
 
 3.  [Convert to LINESTRING]{.underline}
+
 ```{r}
 # To simplify roads dataset and reduce runtime for st_cast to LINESTRING
 # simple_roads <- st_simplify(roads_lines, dTolerance = 0.1) # dTolerance = 0.1, 10 or 100
@@ -197,6 +201,7 @@ filtered_acc <- st_intersection(filtered_province, acc)
 ```
 
 Split out geometry column to capture x and y coordinates in separate columns
+
 ```{r}
 coords <- st_coordinates(filtered_acc)
 coords_df <- as.data.frame(coords)  # convert to dataframe
@@ -204,6 +209,7 @@ filtered_acc_cbind <- cbind(filtered_acc, coords_df)
 ```
 
 Filter the day of week by weekday or weekend
+
 ```{r}
 acc_weekday <- filtered_acc_cbind %>%  
   filter(dayofweek %in% c("Monday", "Tuesday","Wednesday","Thursday","Friday"))
@@ -267,7 +273,6 @@ tm_shape(acc_weekend)+
   tm_dots()
 tmap_mode('plot')
 ```
-
 
 ```{r}
 #acc_weekend$L1 <- acc_weekend$province_en
