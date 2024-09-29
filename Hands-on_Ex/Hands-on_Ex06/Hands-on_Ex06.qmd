@@ -376,7 +376,7 @@ hclust_ward <- hclust(proxmat, method = 'ward.D')
 plot(hclust_ward, cex = 0.6)
 ```
 
-### **Computing hierarchal clustering**
+### **Selecting the optimal clustering algorithm**
 
 💡 Agglomerative coefficients of all hierarchical clustering algorithms
 
@@ -389,4 +389,39 @@ ac <- function(x) {
 }
 
 map_dbl(m, ac)
+```
+
+### **Determining Optimal Clusters**
+
+There are 3 commonly used methods to determine the optimal clusters:
+
+📌 Gap Statistic Method
+
+```{r}
+set.seed(12345)
+gap_stat <- clusGap(shan_ict, 
+                    FUN = hcut, 
+                    nstart = 25, 
+                    K.max = 10, 
+                    B = 50)
+# Print the result
+print(gap_stat, method = "firstmax")
+```
+
+```{r}
+fviz_gap_stat(gap_stat)
+```
+
+📌 Average Silhouette Method
+
+📌 Elbow Method
+
+
+### **Interpreting the dendrograms**
+
+```{r}
+plot(hclust_ward, cex = 0.6)
+rect.hclust(hclust_ward, 
+            k = 6, 
+            border = 2:5)
 ```

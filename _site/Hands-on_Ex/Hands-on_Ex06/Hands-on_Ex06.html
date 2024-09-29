@@ -231,7 +231,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#visualising-the-standardised-clustering-variables" id="toc-visualising-the-standardised-clustering-variables" class="nav-link" data-scroll-target="#visualising-the-standardised-clustering-variables"><strong>Visualising the standardised clustering variables</strong></a></li>
   <li><a href="#computing-proximity-matrix" id="toc-computing-proximity-matrix" class="nav-link" data-scroll-target="#computing-proximity-matrix"><strong>Computing proximity matrix</strong></a></li>
   <li><a href="#computing-hierarchal-clustering" id="toc-computing-hierarchal-clustering" class="nav-link" data-scroll-target="#computing-hierarchal-clustering"><strong>Computing hierarchal clustering</strong></a></li>
-  <li><a href="#computing-hierarchal-clustering-1" id="toc-computing-hierarchal-clustering-1" class="nav-link" data-scroll-target="#computing-hierarchal-clustering-1"><strong>Computing hierarchal clustering</strong></a></li>
+  <li><a href="#selecting-the-optimal-clustering-algorithm" id="toc-selecting-the-optimal-clustering-algorithm" class="nav-link" data-scroll-target="#selecting-the-optimal-clustering-algorithm"><strong>Selecting the optimal clustering algorithm</strong></a></li>
+  <li><a href="#determining-optimal-clusters" id="toc-determining-optimal-clusters" class="nav-link" data-scroll-target="#determining-optimal-clusters"><strong>Determining Optimal Clusters</strong></a></li>
+  <li><a href="#interpreting-the-dendrograms" id="toc-interpreting-the-dendrograms" class="nav-link" data-scroll-target="#interpreting-the-dendrograms"><strong>Interpreting the dendrograms</strong></a></li>
   </ul></li>
   </ul>
 </nav>
@@ -1401,8 +1403,8 @@ Namhsan    242.15271 210.48485 450.97869 270.79121 430.02019  63.67613</code></p
 </div>
 </div>
 </section>
-<section id="computing-hierarchal-clustering-1" class="level3">
-<h3 class="anchored" data-anchor-id="computing-hierarchal-clustering-1"><strong>Computing hierarchal clustering</strong></h3>
+<section id="selecting-the-optimal-clustering-algorithm" class="level3">
+<h3 class="anchored" data-anchor-id="selecting-the-optimal-clustering-algorithm"><strong>Selecting the optimal clustering algorithm</strong></h3>
 <p>💡 Agglomerative coefficients of all hierarchical clustering algorithms</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">c</span>( <span class="st">"average"</span>, <span class="st">"single"</span>, <span class="st">"complete"</span>, <span class="st">"ward"</span>)</span>
@@ -1416,6 +1418,66 @@ Namhsan    242.15271 210.48485 450.97869 270.79121 430.02019  63.67613</code></p
 <div class="cell-output cell-output-stdout">
 <pre><code>  average    single  complete      ward 
 0.8131144 0.6628705 0.8950702 0.9427730 </code></pre>
+</div>
+</div>
+</section>
+<section id="determining-optimal-clusters" class="level3">
+<h3 class="anchored" data-anchor-id="determining-optimal-clusters"><strong>Determining Optimal Clusters</strong></h3>
+<p>There are 3 commonly used methods to determine the optimal clusters:</p>
+<p>📌 Gap Statistic Method</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">12345</span>)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>gap_stat <span class="ot">&lt;-</span> <span class="fu">clusGap</span>(shan_ict, </span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">FUN =</span> hcut, </span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nstart =</span> <span class="dv">25</span>, </span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">K.max =</span> <span class="dv">10</span>, </span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">B =</span> <span class="dv">50</span>)</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Print the result</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(gap_stat, <span class="at">method =</span> <span class="st">"firstmax"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Clustering Gap statistic ["clusGap"] from call:
+clusGap(x = shan_ict, FUNcluster = hcut, K.max = 10, B = 50, nstart = 25)
+B=50 simulated reference sets, k = 1..10; spaceH0="scaledPCA"
+ --&gt; Number of clusters (method 'firstmax'): 1
+          logW   E.logW       gap     SE.sim
+ [1,] 8.407129 8.680794 0.2736651 0.04460994
+ [2,] 8.130029 8.350712 0.2206824 0.03880130
+ [3,] 7.992265 8.202550 0.2102844 0.03362652
+ [4,] 7.862224 8.080655 0.2184311 0.03784781
+ [5,] 7.756461 7.978022 0.2215615 0.03897071
+ [6,] 7.665594 7.887777 0.2221833 0.03973087
+ [7,] 7.590919 7.806333 0.2154145 0.04054939
+ [8,] 7.526680 7.731619 0.2049390 0.04198644
+ [9,] 7.458024 7.660795 0.2027705 0.04421874
+[10,] 7.377412 7.593858 0.2164465 0.04540947</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_gap_stat</span>(gap_stat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-35-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>📌 Average Silhouette Method</p>
+<p>📌 Elbow Method</p>
+</section>
+<section id="interpreting-the-dendrograms" class="level3">
+<h3 class="anchored" data-anchor-id="interpreting-the-dendrograms"><strong>Interpreting the dendrograms</strong></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hclust_ward, <span class="at">cex =</span> <span class="fl">0.6</span>)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rect.hclust</span>(hclust_ward, </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>            <span class="at">k =</span> <span class="dv">6</span>, </span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">border =</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex06_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 
