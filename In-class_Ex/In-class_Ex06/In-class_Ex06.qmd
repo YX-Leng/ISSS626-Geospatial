@@ -1,0 +1,126 @@
+---
+title: "In-class Exercise 06"
+author: "Leng Yi Xiu"
+date: "Sep 30 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly)
+```
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", layer = "hunan")
+```
+
+```{r}
+GDPPC <- read_csv("data/aspatial/Hunan_GDPPC.csv")
+```
+
+💡 *`spacetime()`* used to create a spatio-temporal cube
+
+```{r}
+GDPPC_st <- spacetime(GDPPC, hunan,
+                      .loc_col = "County",
+                      .time_col = "Year")
+```
+
+```{r}
+is_spacetime_cube(GDPPC_st)
+```
+
+::: {.callout-important appearance="simple"}
+This method can only be used if the administrative boundaries are fixed, only attributes change. Dynamic space phenomena (e.g. natural disasters) cannot be tracked using this method.
+:::
+
+## Computing Gi\*
+
+### Deriving the spatial weights
+
+```{r}
+GDPPC_nb <- GDPPC_st %>%
+  activate("geometry") %>%
+  mutate(nb = include_self(
+    st_contiguity(geometry)),
+    wt = st_inverse_distance(nb,
+                             geometry,
+                             scale = 1,
+                             alpha = 1),
+    .before = 1) %>%
+  set_nbs("nb") %>%   # This is to fix the sequence so that it is not sorted
+  set_wts("wt")       # This is to fix the sequence so that it is not sorted
+```
+
+```{r}
+gi_stars <- GDPPC_nb %>%
+  group_by(Year) %>%
+  mutate(gi_star = local_gstar_perm(
+    GDPPC, nb, wt)) %>%
+  tidyr::unnest(gi_star)
+```
+
+## Mann-Kendall Test on Gi
+
+```{r}
+cbg <- gi_stars %>%
+  ungroup() %>%
+  filter(County == "Changsha") %>%
+  select(County, Year, gi_star)
+```
+
+💡 Plot using ggplot2 and wrapping it to an interactive Mann-Kendall Plot
+
+```{r}
+ggplot(data = cbg,
+       aes(x = Year,
+           y = gi_star)) + 
+  geom_line() +
+  theme_light()
+```
+
+```{r}
+p <- ggplot(data = cbg,
+       aes(x = Year,
+           y = gi_star)) + 
+  geom_line() +
+  theme_light()
+
+ggplotly(p)   # Interactive Plot
+```
+
+```{r}
+cbg %>%
+  summarise(mk = list(
+    unclass(
+      Kendall::MannKendall(gi_star)))) %>%
+  tidyr::unnest_wider(mk)
+```
+
+### Mann-Kendall test data.frame
+
+```{r}
+ehsa <- gi_stars %>%
+  group_by(County) %>%
+  summarise(mk = list(
+    unclass(
+      Kendall::MannKendall(gi_star)))) %>%
+  tidyr::unnest_wider(mk)
+head(ehsa)
+```
+
+## Performing Emerging Hotspot Analysis
+
+```{r}
+ehsa <- emerging_hotspot_analysis(
+  x = GDPPC_st,
+  .var = "GDPPC",
+  k = 1,
+  nsim = 99
+  )
+```
+
