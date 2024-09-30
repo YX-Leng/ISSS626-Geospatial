@@ -9,3 +9,168 @@ execute:
   message: false
   freeze: true
 ---
+
+## Global Measures of Spatial Autocorrelation (GMSA)
+
+By the end of this exercise, we will learn how to:
+
+-   import geospatial data using appropriate function(s) of **sf** package,
+
+-   import csv file using appropriate function of **readr** package,
+
+-   perform relational join using appropriate join function of **dplyr** package,
+
+-   compute Global Spatial Autocorrelation (GSA) statistics by using appropriate functions of **spdep** package,
+
+    -   plot Moran scatterplot,
+
+    -   compute and plot spatial correlogram using appropriate function of **spdep** package, and
+
+-   provide statistically correct interpretation of GSA statistics.
+
+### Importing R packages and Data into R
+
+```{r}
+pacman::p_load(sf, spdep, tmap, tidyverse)
+```
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+### Performing relational join
+
+```{r}
+hunan <- left_join(hunan,hunan2012) %>%
+  select(1:4, 7, 15)
+```
+
+### Visualising Regional Development Indicator
+
+```{r}
+equal <- tm_shape(hunan) +
+  tm_fill("GDPPC",
+          n = 5,
+          style = "equal") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal interval classification")
+
+quantile <- tm_shape(hunan) +
+  tm_fill("GDPPC",
+          n = 5,
+          style = "quantile") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal quantile classification")
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+```
+
+### Computing Contiguity Spatial Weights
+
+📌 Computing Queen contiguity weight matrix
+
+```{r}
+wm_q <- poly2nb(hunan, 
+                queen=TRUE)
+summary(wm_q)
+```
+
+### Row-standardised weights matrix
+
+```{r}
+rswm_q <- nb2listw(wm_q, 
+                   style="W", 
+                   zero.policy = TRUE)
+rswm_q
+```
+
+## Maron’s I
+
+### Maron’s I test
+
+```{r}
+moran.test(hunan$GDPPC, 
+           listw=rswm_q, 
+           zero.policy = TRUE, 
+           na.action=na.omit)
+```
+
+### Computing Monte Carlo Moran’s I
+
+```{r}
+set.seed(1234)
+bperm= moran.mc(hunan$GDPPC, 
+                listw=rswm_q, 
+                nsim=999, 
+                zero.policy = TRUE, 
+                na.action=na.omit)
+bperm
+```
+
+### Visualising Monte Carlo Moran’s I
+
+```{r}
+mean(bperm$res[1:999])
+```
+
+```{r}
+var(bperm$res[1:999])
+```
+
+```{r}
+summary(bperm$res[1:999])
+```
+
+```{r}
+hist(bperm$res, 
+     freq=TRUE, 
+     breaks=20, 
+     xlab="Simulated Moran's I")
+abline(v=0, 
+       col="red") 
+```
+
+## Geary’s C
+
+### Geary’s C test
+
+```{r}
+geary.test(hunan$GDPPC, listw=rswm_q)
+```
+
+### Computing Monte Carlo Geary’s C
+
+```{r}
+set.seed(1234)
+bperm=geary.mc(hunan$GDPPC, 
+               listw=rswm_q, 
+               nsim=999)
+bperm
+```
+
+### Visualising the Monte Carlo Geary’s C
+
+```{r}
+mean(bperm$res[1:999])
+```
+
+```{r}
+var(bperm$res[1:999])
+```
+
+```{r}
+summary(bperm$res[1:999])
+```
+
+```{r}
+hist(bperm$res, freq=TRUE, breaks=20, xlab="Simulated Geary c")
+abline(v=1, col="red") 
+```
