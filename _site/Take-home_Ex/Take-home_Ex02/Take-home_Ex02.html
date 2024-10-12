@@ -230,7 +230,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">1 Overview</a>
   <ul class="collapse">
   <li><a href="#objective" id="toc-objective" class="nav-link" data-scroll-target="#objective">1.1 Objective</a></li>
-  <li><a href="#the-study-area" id="toc-the-study-area" class="nav-link" data-scroll-target="#the-study-area">1.2 The Study Area</a></li>
   </ul></li>
   <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">2 Getting Started</a></li>
   <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation">3 Data Preparation</a>
@@ -241,6 +240,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#check-for-duplicates" id="toc-check-for-duplicates" class="nav-link" data-scroll-target="#check-for-duplicates"><em>3.2.1 Check for duplicates</em></a></li>
   <li><a href="#perform-relational-join" id="toc-perform-relational-join" class="nav-link" data-scroll-target="#perform-relational-join"><em>3.2.2 Perform Relational Join</em></a></li>
   <li><a href="#filter-for-missing-mismatched-values" id="toc-filter-for-missing-mismatched-values" class="nav-link" data-scroll-target="#filter-for-missing-mismatched-values"><em>3.2.3 Filter for missing, mismatched values</em></a></li>
+  <li><a href="#correct-province-names-in-tourism-statistics" id="toc-correct-province-names-in-tourism-statistics" class="nav-link" data-scroll-target="#correct-province-names-in-tourism-statistics"><em>3.2.4 Correct province names in Tourism Statistics</em></a></li>
+  <li><a href="#perform-relational-join-and-check-that-no-more-mismatched-provinces" id="toc-perform-relational-join-and-check-that-no-more-mismatched-provinces" class="nav-link" data-scroll-target="#perform-relational-join-and-check-that-no-more-mismatched-provinces"><em>3.2.5 Perform Relational Join and check that no more mismatched provinces</em></a></li>
+  <li><a href="#check-for-values-less-than-zero" id="toc-check-for-values-less-than-zero" class="nav-link" data-scroll-target="#check-for-values-less-than-zero"><em>3.2.6 Check for values less than zero</em></a></li>
+  <li><a href="#split-out-the-8-attributes-to-unique-columns" id="toc-split-out-the-8-attributes-to-unique-columns" class="nav-link" data-scroll-target="#split-out-the-8-attributes-to-unique-columns"><em>3.2.7 Split out the 8 attributes to unique columns</em></a></li>
+  <li><a href="#save-transformed-data-in-rds-folder" id="toc-save-transformed-data-in-rds-folder" class="nav-link" data-scroll-target="#save-transformed-data-in-rds-folder"><em>3.2.8 Save transformed data in rds folder</em></a></li>
   </ul></li>
   </ul></li>
   <li><a href="#exploratory-data-analysis-eda" id="toc-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#exploratory-data-analysis-eda">4 Exploratory Data Analysis (EDA)</a></li>
@@ -303,18 +307,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>Carry out an <strong>emerging hotspot analysis</strong> to identify trends in hot or cold spots over time</p></li>
 <li><p>Describe the spatial patterns revealed by the analysis above.</p></li>
 </ul>
-</section>
-<section id="the-study-area" class="level2">
-<h2 class="anchored" data-anchor-id="the-study-area">1.2 The Study Area</h2>
-<p>???</p>
 <hr>
 </section>
 </section>
 <section id="getting-started" class="level1">
 <h1>2 Getting Started</h1>
-<p>The code chunk below installs and loads <strong>sf</strong>, <strong>spdep</strong>, <strong>tmap</strong>, <strong>tidyverse, funModeling</strong> packages into R environment</p>
+<p>The code chunk below installs and loads <strong>sf, spdep, ggstatsplot, tmap, tidyverse, knitr, GWmodel</strong> packages into R environment</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, tmap, tidyverse, spdep, funModeling)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, spdep, ggstatsplot, tmap, tidyverse, knitr, GWmodel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <hr>
 </section>
@@ -370,41 +370,41 @@ date (1): date
 <p>💡To check the different attributes in the data set</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>thaitour <span class="sc">%&gt;%</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(variable) <span class="sc">%&gt;%</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(variable) <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 8 × 1
-  variable          
-  &lt;chr&gt;             
-1 ratio_tourist_stay
-2 no_tourist_stay   
-3 no_tourist_all    
-4 no_tourist_thai   
-5 no_tourist_foreign
-6 revenue_all       
-7 revenue_thai      
-8 revenue_foreign   </code></pre>
+<pre><code># A tibble: 8 × 2
+  variable               n
+  &lt;chr&gt;              &lt;int&gt;
+1 no_tourist_all      3850
+2 no_tourist_foreign  3850
+3 no_tourist_stay     3850
+4 no_tourist_thai     3850
+5 ratio_tourist_stay  3850
+6 revenue_all         3850
+7 revenue_foreign     3850
+8 revenue_thai        3850</code></pre>
 </div>
 </div>
 <p>💡To check the different provinces in the data set</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>thaitour <span class="sc">%&gt;%</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(province_eng) <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(province_eng) <span class="sc">%&gt;%</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 77 × 1
-   province_eng            
-   &lt;chr&gt;                   
- 1 Bangkok                 
- 2 Lopburi                 
- 3 Phra Nakhon Si Ayutthaya
- 4 Saraburi                
- 5 Chainat                 
- 6 Nakhon Pathom           
- 7 Sing Buri               
- 8 Ang Thong               
- 9 Nonthaburi              
-10 Pathum Thani            
+<pre><code># A tibble: 77 × 2
+   province_eng      n
+   &lt;chr&gt;         &lt;int&gt;
+ 1 Amnat Charoen   400
+ 2 Ang Thong       400
+ 3 Bangkok         400
+ 4 Bueng Kan       400
+ 5 Buriram         400
+ 6 Chachoengsao    400
+ 7 Chainat         400
+ 8 Chaiyaphum      400
+ 9 Chanthaburi     400
+10 Chiang Mai      400
 # ℹ 67 more rows</code></pre>
 </div>
 </div>
@@ -513,6 +513,109 @@ Findings
 <p>The above code chunk filters for rows with empty Shape_Area and Geometry - this is indicative that there are mismatches between the 2 data sets and the province name are not compatible between the Tourism Statistics and Administrative Boundaries.</p>
 <p>The 8 provinces have been misspelled in the Tourism Statistics data set and will need to be corrected before the data sets can be merged correctly.</p>
 </div>
+</div>
+</section>
+<section id="correct-province-names-in-tourism-statistics" class="level3">
+<h3 class="anchored" data-anchor-id="correct-province-names-in-tourism-statistics"><em>3.2.4 Correct province names in Tourism Statistics</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>thaitour_v2 <span class="ot">&lt;-</span> thaitour <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">province_eng =</span> <span class="fu">case_when</span>(</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Lopburi"</span> <span class="sc">~</span> <span class="st">"Lop Buri"</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Chainat"</span> <span class="sc">~</span> <span class="st">"Chai Nat"</span>,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Chonburi"</span> <span class="sc">~</span> <span class="st">"Chon Buri"</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Prachinburi"</span> <span class="sc">~</span> <span class="st">"Prachin Buri"</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Phang Nga"</span> <span class="sc">~</span> <span class="st">"Phangnga"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Buriram"</span> <span class="sc">~</span> <span class="st">"Buri Ram"</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Sisaket"</span> <span class="sc">~</span> <span class="st">"Si Sa Ket"</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    province_eng <span class="sc">==</span> <span class="st">"Nong Bua Lamphu"</span> <span class="sc">~</span> <span class="st">"Nong Bua Lam Phu"</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> province_eng  <span class="co"># Keep all other values unchanged</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="perform-relational-join-and-check-that-no-more-mismatched-provinces" class="level3">
+<h3 class="anchored" data-anchor-id="perform-relational-join-and-check-that-no-more-mismatched-provinces"><em>3.2.5 Perform Relational Join and check that no more mismatched provinces</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>thai_v2 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(thaitour_v2,province,</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"province_eng"</span> <span class="ot">=</span> <span class="st">"ADM1_EN"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,<span class="dv">21</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(thai_v2))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      date.x province_eng   region_eng     variable        value   Shape_Leng 
+           0            0            0            0            0            0 
+  Shape_Area     geometry 
+           0            0 </code></pre>
+</div>
+</div>
+</section>
+<section id="check-for-values-less-than-zero" class="level3">
+<h3 class="anchored" data-anchor-id="check-for-values-less-than-zero"><em>3.2.6 Check for values less than zero</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>value_neg <span class="ot">&lt;-</span> thai_v2 <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(value <span class="sc">&lt;</span> <span class="dv">0</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>value_neg</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 8
+  date.x     province_eng  region_eng variable       value Shape_Leng Shape_Area
+  &lt;date&gt;     &lt;chr&gt;         &lt;chr&gt;      &lt;chr&gt;          &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;
+1 2021-07-01 Nakhon Pathom central    revenue_forei… -4250       2.46      0.179
+2 2021-08-01 Nakhon Pathom central    revenue_forei… -4250       2.46      0.179
+# ℹ 1 more variable: geometry &lt;MULTIPOLYGON [m]&gt;</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Findings
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The above code chunk filters out 2 records of foreign revenue where the value is negative. For purpose of analysis in this exercise, these 2 records will be corrected to zero as revenue should not be negative.</p>
+<p>Final data set will remain with 30,800 observations.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>thai_v2 <span class="ot">&lt;-</span> thai_v2 <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">pmax</span>(value, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="split-out-the-8-attributes-to-unique-columns" class="level3">
+<h3 class="anchored" data-anchor-id="split-out-the-8-attributes-to-unique-columns"><em>3.2.7 Split out the 8 attributes to unique columns</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>thai_final <span class="ot">&lt;-</span> thai_v2 <span class="sc">%&gt;%</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> variable, <span class="at">values_from =</span> value)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(thai_final)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3,850 × 14
+   date.x     province_eng             region_eng Shape_Leng Shape_Area
+   &lt;date&gt;     &lt;chr&gt;                    &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt;
+ 1 2019-01-01 Bangkok                  central          2.42     0.131 
+ 2 2019-01-01 Lop Buri                 central          5.69     0.546 
+ 3 2019-01-01 Phra Nakhon Si Ayutthaya central          3.04     0.214 
+ 4 2019-01-01 Saraburi                 central          4.77     0.292 
+ 5 2019-01-01 Chai Nat                 central          2.90     0.209 
+ 6 2019-01-01 Nakhon Pathom            central          2.46     0.179 
+ 7 2019-01-01 Sing Buri                central          1.78     0.0687
+ 8 2019-01-01 Ang Thong                central          1.74     0.0792
+ 9 2019-01-01 Nonthaburi               central          1.25     0.0532
+10 2019-01-01 Pathum Thani             central          1.88     0.127 
+# ℹ 3,840 more rows
+# ℹ 9 more variables: geometry &lt;MULTIPOLYGON [m]&gt;, ratio_tourist_stay &lt;dbl&gt;,
+#   no_tourist_stay &lt;dbl&gt;, no_tourist_all &lt;dbl&gt;, no_tourist_thai &lt;dbl&gt;,
+#   no_tourist_foreign &lt;dbl&gt;, revenue_all &lt;dbl&gt;, revenue_thai &lt;dbl&gt;,
+#   revenue_foreign &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="save-transformed-data-in-rds-folder" class="level3">
+<h3 class="anchored" data-anchor-id="save-transformed-data-in-rds-folder"><em>3.2.8 Save transformed data in rds folder</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(thai_final, <span class="st">"data/rds/thai_final.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <hr>
 </section>

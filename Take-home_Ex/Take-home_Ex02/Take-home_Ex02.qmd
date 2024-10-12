@@ -34,18 +34,14 @@ The objective of this exercise is to explore whether key indicators of Thailand'
 
 -   Describe the spatial patterns revealed by the analysis above.
 
-## 1.2 The Study Area
-
-???
-
 ------------------------------------------------------------------------
 
 # 2 Getting Started
 
-The code chunk below installs and loads **sf**, **spdep**, **tmap**, **tidyverse, funModeling** packages into R environment
+The code chunk below installs and loads **sf, spdep, ggstatsplot, tmap, tidyverse, knitr, GWmodel** packages into R environment
 
 ```{r}
-pacman::p_load(sf, tmap, tidyverse, spdep, funModeling)
+pacman::p_load(sf, spdep, ggstatsplot, tmap, tidyverse, knitr, GWmodel)
 ```
 
 ------------------------------------------------------------------------
@@ -77,7 +73,7 @@ list(thaitour)
 
 ```{r}
 thaitour %>%
-  distinct(variable) %>%
+  count(variable) %>%
   print()
 ```
 
@@ -85,7 +81,7 @@ thaitour %>%
 
 ```{r}
 thaitour %>%
-  distinct(province_eng) %>%
+  count(province_eng) %>%
   print()
 ```
 
@@ -142,6 +138,71 @@ The above code chunk filters for rows with empty Shape_Area and Geometry - this 
 
 The 8 provinces have been misspelled in the Tourism Statistics data set and will need to be corrected before the data sets can be merged correctly.
 :::
+
+### *3.2.4 Correct province names in Tourism Statistics*
+
+```{r}
+thaitour_v2 <- thaitour %>%
+  mutate(province_eng = case_when(
+    province_eng == "Lopburi" ~ "Lop Buri",
+    province_eng == "Chainat" ~ "Chai Nat",
+    province_eng == "Chonburi" ~ "Chon Buri",
+    province_eng == "Prachinburi" ~ "Prachin Buri",
+    province_eng == "Phang Nga" ~ "Phangnga",
+    province_eng == "Buriram" ~ "Buri Ram",
+    province_eng == "Sisaket" ~ "Si Sa Ket",
+    province_eng == "Nong Bua Lamphu" ~ "Nong Bua Lam Phu",
+    TRUE ~ province_eng  # Keep all other values unchanged
+  ))
+```
+
+### *3.2.5 Perform Relational Join and check that no more mismatched provinces*
+
+```{r}
+thai_v2 <- left_join(thaitour_v2,province,
+                  by = c("province_eng" = "ADM1_EN")) %>%
+  select(1:7,21)
+```
+
+```{r}
+colSums(is.na(thai_v2))
+```
+
+### *3.2.6 Check for values less than zero*
+
+```{r}
+value_neg <- thai_v2 %>%
+  filter(value < 0)
+
+value_neg
+```
+
+::: callout-important
+## Findings
+
+The above code chunk filters out 2 records of foreign revenue where the value is negative. For purpose of analysis in this exercise, these 2 records will be corrected to zero as revenue should not be negative.
+
+Final data set will remain with 30,800 observations.
+:::
+
+```{r}
+thai_v2 <- thai_v2 %>%
+  mutate(value = pmax(value, 0))
+```
+
+### *3.2.7 Split out the 8 attributes to unique columns*
+
+```{r}
+thai_final <- thai_v2 %>%
+  pivot_wider(names_from = variable, values_from = value)
+print(thai_final)
+```
+
+### *3.2.8 Save transformed data in rds folder*
+
+```{r}
+write_rds(thai_final, "data/rds/thai_final.rds")
+```
 
 ------------------------------------------------------------------------
 
