@@ -10,13 +10,13 @@ execute:
   freeze: true
 ---
 
-## 1 Overview
+# 1 Overview
 
 Tourism is a major industry in Thailand, contributing around 20% to the country's gross domestic product (GDP). In 2019, Thailand generated 90 billion US dollars from both domestic and international tourism. However, due to the COVID-19 pandemic, this revenue sharply declined to 24 billion US dollars in 2020.
 
 It's also important to recognize that Thailand's tourism economy is not evenly distributed across the country. The tourism economy of Thailand is mainly focused on five provinces, namely Bangkok, Phuket, Chiang Mai, Sukhothai and Phetchaburi.
 
-### 1.1 Objective
+## 1.1 Objective
 
 The objective of this exercise is to explore whether key indicators of Thailand's tourism economy are independent of spatial and spatio-temporal factors. If dependencies exist, we want to identify clusters, outliers, and emerging hot or cold spots. The exercise involves the following tasks:
 
@@ -34,11 +34,13 @@ The objective of this exercise is to explore whether key indicators of Thailand'
 
 -   Describe the spatial patterns revealed by the analysis above.
 
-### 1.2 The Study Area
+## 1.2 The Study Area
 
-The focus of this exercise would be on the five provinces of Thiailand with highest tourism revenue, namely Bangkok, Phuket, Chiang Mai, Sukhothai and Phetchaburi.
+???
 
-## 2 Getting Started
+------------------------------------------------------------------------
+
+# 2 Getting Started
 
 The code chunk below installs and loads **sf**, **spdep**, **tmap**, **tidyverse, funModeling** packages into R environment
 
@@ -46,7 +48,9 @@ The code chunk below installs and loads **sf**, **spdep**, **tmap**, **tidyverse
 pacman::p_load(sf, tmap, tidyverse, spdep, funModeling)
 ```
 
-## 3 Data Preparation
+------------------------------------------------------------------------
+
+# 3 Data Preparation
 
 For the purpose of this exercise, we will be using two data sets:
 
@@ -56,7 +60,7 @@ For the purpose of this exercise, we will be using two data sets:
 -   Thailand Subnational Adminstrative Boundaries (**province**)\
     The dataset contains Thailand's administrative level 0 (country), 1 (province), 2 (district), and 3 (sub-district, tambon) boundaries.
 
-### 3.1 Importing data into R Environment
+## 3.1 Importing data into R Environment
 
 ::: panel-tabset
 ## Tourism Statistics
@@ -77,11 +81,68 @@ thaitour %>%
   print()
 ```
 
+💡To check the different provinces in the data set
+
+```{r}
+thaitour %>%
+  distinct(province_eng) %>%
+  print()
+```
+
 ## Administrative Boundaries
 
 ```{r}
 province <- st_read(dsn = "data/rawdata", layer = "tha_admbnda_adm1_rtsd_20220121")
 ```
 
-## 4 Exploratory Data Analysis (EDA)
+```{r}
+st_crs(province) <- 4326 
+province <- st_transform(province, crs = 32647)
+head(province,5)
+```
 :::
+
+## 3.2 Data Wrangling
+
+### *3.2.1 Check for duplicates*
+
+To ensure no duplicate rows are presented and only the English columns are selected, the following code chunk is used:
+
+```{r}
+thaitour <- thaitour %>% 
+  distinct() %>% 
+        select(date,province_eng,region_eng,variable,value)
+```
+
+### *3.2.2 Perform Relational Join*
+
+Perform a left join of both data sets and select only columns that will be used in analysis:
+
+```{r}
+thai <- left_join(thaitour,province,
+                  by = c("province_eng" = "ADM1_EN")) %>%
+  select(1:7,21)
+```
+
+### *3.2.3 Filter for missing, mismatched values*
+
+```{r}
+filter_thai <- thai %>%
+  filter(is.na(Shape_Area))
+
+filter_thai %>%
+  distinct(province_eng) %>%
+  print()
+```
+
+::: callout-important
+## Findings
+
+The above code chunk filters for rows with empty Shape_Area and Geometry - this is indicative that there are mismatches between the 2 data sets and the province name are not compatible between the Tourism Statistics and Administrative Boundaries.
+
+The 8 provinces have been misspelled in the Tourism Statistics data set and will need to be corrected before the data sets can be merged correctly.
+:::
+
+------------------------------------------------------------------------
+
+# 4 Exploratory Data Analysis (EDA)

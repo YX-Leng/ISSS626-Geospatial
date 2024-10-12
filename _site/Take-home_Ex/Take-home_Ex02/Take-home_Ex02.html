@@ -200,7 +200,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="dropdown-text">Take-home Exercise 1</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex01/Take-home_Ex02.html">
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html">
  <span class="dropdown-text">Take-home Exercise 2</span></a>
   </li>  
     </ul>
@@ -236,7 +236,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation">3 Data Preparation</a>
   <ul class="collapse">
   <li><a href="#importing-data-into-r-environment" id="toc-importing-data-into-r-environment" class="nav-link" data-scroll-target="#importing-data-into-r-environment">3.1 Importing data into R Environment</a></li>
+  <li><a href="#data-wrangling" id="toc-data-wrangling" class="nav-link" data-scroll-target="#data-wrangling">3.2 Data Wrangling</a>
+  <ul class="collapse">
+  <li><a href="#check-for-duplicates" id="toc-check-for-duplicates" class="nav-link" data-scroll-target="#check-for-duplicates"><em>3.2.1 Check for duplicates</em></a></li>
+  <li><a href="#perform-relational-join" id="toc-perform-relational-join" class="nav-link" data-scroll-target="#perform-relational-join"><em>3.2.2 Perform Relational Join</em></a></li>
+  <li><a href="#filter-for-missing-mismatched-values" id="toc-filter-for-missing-mismatched-values" class="nav-link" data-scroll-target="#filter-for-missing-mismatched-values"><em>3.2.3 Filter for missing, mismatched values</em></a></li>
   </ul></li>
+  </ul></li>
+  <li><a href="#exploratory-data-analysis-eda" id="toc-exploratory-data-analysis-eda" class="nav-link" data-scroll-target="#exploratory-data-analysis-eda">4 Exploratory Data Analysis (EDA)</a></li>
   </ul>
 </nav>
     </div>
@@ -280,12 +287,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="overview" class="level2">
-<h2 class="anchored" data-anchor-id="overview">1 Overview</h2>
+<section id="overview" class="level1">
+<h1>1 Overview</h1>
 <p>Tourism is a major industry in Thailand, contributing around 20% to the country’s gross domestic product (GDP). In 2019, Thailand generated 90 billion US dollars from both domestic and international tourism. However, due to the COVID-19 pandemic, this revenue sharply declined to 24 billion US dollars in 2020.</p>
 <p>It’s also important to recognize that Thailand’s tourism economy is not evenly distributed across the country. The tourism economy of Thailand is mainly focused on five provinces, namely Bangkok, Phuket, Chiang Mai, Sukhothai and Phetchaburi.</p>
-<section id="objective" class="level3">
-<h3 class="anchored" data-anchor-id="objective">1.1 Objective</h3>
+<section id="objective" class="level2">
+<h2 class="anchored" data-anchor-id="objective">1.1 Objective</h2>
 <p>The objective of this exercise is to explore whether key indicators of Thailand’s tourism economy are independent of spatial and spatio-temporal factors. If dependencies exist, we want to identify clusters, outliers, and emerging hot or cold spots. The exercise involves the following tasks:</p>
 <ul>
 <li><p>Create a geospatial data layer of Thailand’s provinces (including Bangkok) as an <em><code>sf</code></em> polygon layer.</p></li>
@@ -297,20 +304,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>Describe the spatial patterns revealed by the analysis above.</p></li>
 </ul>
 </section>
-<section id="the-study-area" class="level3">
-<h3 class="anchored" data-anchor-id="the-study-area">1.2 The Study Area</h3>
-<p>The focus of this exercise would be on the five provinces of Thiailand with highest tourism revenue, namely Bangkok, Phuket, Chiang Mai, Sukhothai and Phetchaburi.</p>
+<section id="the-study-area" class="level2">
+<h2 class="anchored" data-anchor-id="the-study-area">1.2 The Study Area</h2>
+<p>???</p>
+<hr>
 </section>
 </section>
-<section id="getting-started" class="level2">
-<h2 class="anchored" data-anchor-id="getting-started">2 Getting Started</h2>
+<section id="getting-started" class="level1">
+<h1>2 Getting Started</h1>
 <p>The code chunk below installs and loads <strong>sf</strong>, <strong>spdep</strong>, <strong>tmap</strong>, <strong>tidyverse, funModeling</strong> packages into R environment</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, tmap, tidyverse, spdep, funModeling)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<hr>
 </section>
-<section id="data-preparation" class="level2">
-<h2 class="anchored" data-anchor-id="data-preparation">3 Data Preparation</h2>
+<section id="data-preparation" class="level1">
+<h1>3 Data Preparation</h1>
 <p>For the purpose of this exercise, we will be using two data sets:</p>
 <ul>
 <li><p>Thailand Domestic Tourism Statistics (<strong>thaitour</strong>)<br>
@@ -318,10 +327,10 @@ The dataset contains statistics on domestic tourism in Thailand, by province, fr
 <li><p>Thailand Subnational Adminstrative Boundaries (<strong>province</strong>)<br>
 The dataset contains Thailand’s administrative level 0 (country), 1 (province), 2 (district), and 3 (sub-district, tambon) boundaries.</p></li>
 </ul>
-<section id="importing-data-into-r-environment" class="level3">
-<h3 class="anchored" data-anchor-id="importing-data-into-r-environment">3.1 Importing data into R Environment</h3>
+<section id="importing-data-into-r-environment" class="level2">
+<h2 class="anchored" data-anchor-id="importing-data-into-r-environment">3.1 Importing data into R Environment</h2>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Tourism Statistics</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Administrative Boundaries</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">4 Exploratory Data Analysis (EDA)</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">Tourism Statistics</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Administrative Boundaries</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
@@ -377,10 +386,32 @@ date (1): date
 8 revenue_foreign   </code></pre>
 </div>
 </div>
+<p>💡To check the different provinces in the data set</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>thaitour <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(province_eng) <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 77 × 1
+   province_eng            
+   &lt;chr&gt;                   
+ 1 Bangkok                 
+ 2 Lopburi                 
+ 3 Phra Nakhon Si Ayutthaya
+ 4 Saraburi                
+ 5 Chainat                 
+ 6 Nakhon Pathom           
+ 7 Sing Buri               
+ 8 Ang Thong               
+ 9 Nonthaburi              
+10 Pathum Thani            
+# ℹ 67 more rows</code></pre>
+</div>
+</div>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>province <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/rawdata"</span>, <span class="at">layer =</span> <span class="st">"tha_admbnda_adm1_rtsd_20220121"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>province <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/rawdata"</span>, <span class="at">layer =</span> <span class="st">"tha_admbnda_adm1_rtsd_20220121"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `tha_admbnda_adm1_rtsd_20220121' from data source 
   `D:\2. SMU - MITB\Term 4\ISSS626 Geospatial\YX-Leng\ISSS626-Geospatial\Take-home_Ex\Take-home_Ex02\data\rawdata' 
@@ -392,15 +423,105 @@ Bounding box:  xmin: 97.34336 ymin: 5.613038 xmax: 105.637 ymax: 20.46507
 Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_crs</span>(province) <span class="ot">&lt;-</span> <span class="dv">4326</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>province <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(province, <span class="at">crs =</span> <span class="dv">32647</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(province,<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 5 features and 16 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 630867.9 ymin: 1490796 xmax: 712440.5 ymax: 1622722
+Projected CRS: WGS 84 / UTM zone 47N
+  Shape_Leng Shape_Area                  ADM1_EN       ADM1_TH ADM1_PCODE
+1   2.417227 0.13133873                  Bangkok  กรุงเทพมหานคร       TH10
+2   1.695100 0.07926199             Samut Prakan    สมุทรปราการ       TH11
+3   1.251111 0.05323766               Nonthaburi         นนทบุรี       TH12
+4   1.884945 0.12698345             Pathum Thani        ปทุมธานี       TH13
+5   3.041716 0.21393797 Phra Nakhon Si Ayutthaya พระนครศรีอยุธยา       TH14
+  ADM1_REF ADM1ALT1EN ADM1ALT2EN ADM1ALT1TH ADM1ALT2TH  ADM0_EN   ADM0_TH
+1     &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt; Thailand ประเทศไทย
+2     &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt; Thailand ประเทศไทย
+3     &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt; Thailand ประเทศไทย
+4     &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt; Thailand ประเทศไทย
+5     &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt;       &lt;NA&gt; Thailand ประเทศไทย
+  ADM0_PCODE       date    validOn    validTo                       geometry
+1         TH 2019-02-18 2022-01-22 -001-11-30 MULTIPOLYGON (((674339.8 15...
+2         TH 2019-02-18 2022-01-22 -001-11-30 MULTIPOLYGON (((687139.8 15...
+3         TH 2019-02-18 2022-01-22 -001-11-30 MULTIPOLYGON (((644817.9 15...
+4         TH 2019-02-18 2022-01-22 -001-11-30 MULTIPOLYGON (((704086 1575...
+5         TH 2019-02-18 2022-01-22 -001-11-30 MULTIPOLYGON (((662941.6 16...</code></pre>
 </div>
-<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
-
 </div>
 </div>
 </div>
-
-
+</div>
 </section>
+<section id="data-wrangling" class="level2">
+<h2 class="anchored" data-anchor-id="data-wrangling">3.2 Data Wrangling</h2>
+<section id="check-for-duplicates" class="level3">
+<h3 class="anchored" data-anchor-id="check-for-duplicates"><em>3.2.1 Check for duplicates</em></h3>
+<p>To ensure no duplicate rows are presented and only the English columns are selected, the following code chunk is used:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>thaitour <span class="ot">&lt;-</span> thaitour <span class="sc">%&gt;%</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">select</span>(date,province_eng,region_eng,variable,value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="perform-relational-join" class="level3">
+<h3 class="anchored" data-anchor-id="perform-relational-join"><em>3.2.2 Perform Relational Join</em></h3>
+<p>Perform a left join of both data sets and select only columns that will be used in analysis:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>thai <span class="ot">&lt;-</span> <span class="fu">left_join</span>(thaitour,province,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"province_eng"</span> <span class="ot">=</span> <span class="st">"ADM1_EN"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,<span class="dv">21</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="filter-for-missing-mismatched-values" class="level3">
+<h3 class="anchored" data-anchor-id="filter-for-missing-mismatched-values"><em>3.2.3 Filter for missing, mismatched values</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>filter_thai <span class="ot">&lt;-</span> thai <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(Shape_Area))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>filter_thai <span class="sc">%&gt;%</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(province_eng) <span class="sc">%&gt;%</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 1
+  province_eng   
+  &lt;chr&gt;          
+1 Lopburi        
+2 Chainat        
+3 Chonburi       
+4 Prachinburi    
+5 Phang Nga      
+6 Buriram        
+7 Sisaket        
+8 Nong Bua Lamphu</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Findings
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The above code chunk filters for rows with empty Shape_Area and Geometry - this is indicative that there are mismatches between the 2 data sets and the province name are not compatible between the Tourism Statistics and Administrative Boundaries.</p>
+<p>The 8 provinces have been misspelled in the Tourism Statistics data set and will need to be corrected before the data sets can be merged correctly.</p>
+</div>
+</div>
+<hr>
+</section>
+</section>
+</section>
+<section id="exploratory-data-analysis-eda" class="level1">
+<h1>4 Exploratory Data Analysis (EDA)</h1>
+
+
 </section>
 
 </main> <!-- /main -->
