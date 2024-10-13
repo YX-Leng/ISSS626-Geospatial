@@ -137,7 +137,6 @@ tm_shape(lisa) +
             main.title.size = 2)
 ```
 
-
 ```{r}
 tmap_mode("plot")
 map1 <- tm_shape(lisa) +
@@ -174,7 +173,7 @@ tm_shape(lisa_sig) +
 
 ## Hot Spot and Cold Spot Area Analysis
 
-### Computing local Gi* statistics
+### Computing local Gi\* statistics
 
 ```{r}
 wm_idw <- hunan_GDPPC %>%
