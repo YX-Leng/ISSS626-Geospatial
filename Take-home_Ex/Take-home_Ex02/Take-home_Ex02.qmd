@@ -38,10 +38,10 @@ The objective of this exercise is to explore whether key indicators of Thailand'
 
 # 2 Getting Started
 
-The code chunk below installs and loads **sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork** packages into R environment
+The code chunk below installs and loads **sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork, Kendall** packages into R environment
 
 ```{r}
-pacman::p_load(sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork)
+pacman::p_load(sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork, Kendall)
 ```
 
 ------------------------------------------------------------------------
@@ -319,7 +319,7 @@ ggplot(thai_combined, aes(x = reorder(province_eng, (no_tourist_thai + no_touris
   facet_wrap(~ year)
 ```
 
----
+------------------------------------------------------------------------
 
 # 5 Global Spatial Autocorrelation Analysis
 
@@ -563,7 +563,7 @@ gearylocal
 Overall, there is no spatial dependence and economic data is randomly disbursed for the study period of 2019.
 :::
 
----
+------------------------------------------------------------------------
 
 # 6 Local spatial autocorrelation analysis
 
@@ -667,7 +667,6 @@ Interesting to note that the province of Chonburi also shows positive Local Mora
 
 ```{r}
 #thai_st <- as_spacetime(thai_final,
-                        #.geometry = "geometry",
                         #.loc_col = "province_eng",  
                         #.time_col = "date.x")
 ```
@@ -676,4 +675,48 @@ Interesting to note that the province of Chonburi also shows positive Local Mora
 #is_spacetime_cube(thai_st)
 ```
 
-# 8 Conclusion
+## 7.1 Computing Gi\*
+
+### *7.1.1 Deriving the spatial weights*
+
+```{r}
+#thai_nb <- thai_st %>%
+  #activate("geometry") %>%
+  #mutate(nb = include_self(
+    #st_contiguity(geometry)),
+    #wt = st_inverse_distance(nb, 
+                             #geometry, 
+                             #scale = 1,
+                             #alpha = 1),
+    #.before = 1) %>%
+  #set_nbs("nb") %>%
+  #set_wts("wt")
+```
+
+### *7.1.2 Local Gi\**
+
+```{r}
+#gi_stars <- thai_nb %>% 
+  #group_by(Year) %>% 
+  #mutate(gi_star = local_gstar_perm(
+    #GDPPC, nb, wt)) %>% 
+  #tidyr::unnest(gi_star)
+```
+
+## 7.2 Emerging Hotspot Analysis
+
+```{r}
+#ehsa <- emerging_hotspot_analysis(
+  #x = thai_st, 
+  #.var = "revenue_all", 
+  #k = 1, 
+  #nsim = 99
+#)
+```
+
+```{r}
+#ggplot(data = ehsa,
+       #aes(x = classification)) +
+  #geom_bar()
+```
+

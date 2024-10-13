@@ -272,8 +272,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#emerging-hotspot-analysis" id="toc-emerging-hotspot-analysis" class="nav-link" data-scroll-target="#emerging-hotspot-analysis">7 Emerging hotspot analysis</a>
   <ul class="collapse">
   <li><a href="#creating-a-time-series-cube" id="toc-creating-a-time-series-cube" class="nav-link" data-scroll-target="#creating-a-time-series-cube">7.1 Creating a Time Series Cube</a></li>
+  <li><a href="#computing-gi" id="toc-computing-gi" class="nav-link" data-scroll-target="#computing-gi">7.1 Computing Gi*</a>
+  <ul class="collapse">
+  <li><a href="#deriving-the-spatial-weights" id="toc-deriving-the-spatial-weights" class="nav-link" data-scroll-target="#deriving-the-spatial-weights"><em>7.1.1 Deriving the spatial weights</em></a></li>
+  <li><a href="#local-gi" id="toc-local-gi" class="nav-link" data-scroll-target="#local-gi"><em>7.1.2 Local Gi*</em></a></li>
   </ul></li>
-  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">8 Conclusion</a></li>
+  <li><a href="#emerging-hotspot-analysis-1" id="toc-emerging-hotspot-analysis-1" class="nav-link" data-scroll-target="#emerging-hotspot-analysis-1">7.2 Emerging Hotspot Analysis</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -338,9 +343,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="getting-started" class="level1">
 <h1>2 Getting Started</h1>
-<p>The code chunk below installs and loads <strong>sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork</strong> packages into R environment</p>
+<p>The code chunk below installs and loads <strong>sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork, Kendall</strong> packages into R environment</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, ggstatsplot, tmap, tidyverse, spdep, patchwork, Kendall)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <hr>
 </section>
@@ -1405,19 +1410,60 @@ Conclusion - Local Spatial Autocorrelation
 <h2 class="anchored" data-anchor-id="creating-a-time-series-cube">7.1 Creating a Time Series Cube</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb95"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="co">#thai_st &lt;- as_spacetime(thai_final,</span></span>
-<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>                        <span class="co">#.geometry = "geometry",</span></span>
-<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>                        <span class="co">#.loc_col = "province_eng",  </span></span>
-<span id="cb95-4"><a href="#cb95-4" aria-hidden="true" tabindex="-1"></a>                        <span class="co">#.time_col = "date.x")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>                        <span class="co">#.loc_col = "province_eng",  </span></span>
+<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>                        <span class="co">#.time_col = "date.x")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb96"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="co">#is_spacetime_cube(thai_st)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
+<section id="computing-gi" class="level2">
+<h2 class="anchored" data-anchor-id="computing-gi">7.1 Computing Gi*</h2>
+<section id="deriving-the-spatial-weights" class="level3">
+<h3 class="anchored" data-anchor-id="deriving-the-spatial-weights"><em>7.1.1 Deriving the spatial weights</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a><span class="co">#thai_nb &lt;- thai_st %&gt;%</span></span>
+<span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#activate("geometry") %&gt;%</span></span>
+<span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#mutate(nb = include_self(</span></span>
+<span id="cb97-4"><a href="#cb97-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#st_contiguity(geometry)),</span></span>
+<span id="cb97-5"><a href="#cb97-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#wt = st_inverse_distance(nb, </span></span>
+<span id="cb97-6"><a href="#cb97-6" aria-hidden="true" tabindex="-1"></a>                             <span class="co">#geometry, </span></span>
+<span id="cb97-7"><a href="#cb97-7" aria-hidden="true" tabindex="-1"></a>                             <span class="co">#scale = 1,</span></span>
+<span id="cb97-8"><a href="#cb97-8" aria-hidden="true" tabindex="-1"></a>                             <span class="co">#alpha = 1),</span></span>
+<span id="cb97-9"><a href="#cb97-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">#.before = 1) %&gt;%</span></span>
+<span id="cb97-10"><a href="#cb97-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#set_nbs("nb") %&gt;%</span></span>
+<span id="cb97-11"><a href="#cb97-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">#set_wts("wt")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="conclusion" class="level1">
-<h1>8 Conclusion</h1>
+<section id="local-gi" class="level3">
+<h3 class="anchored" data-anchor-id="local-gi"><em>7.1.2 Local Gi*</em></h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb98"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="co">#gi_stars &lt;- thai_nb %&gt;% </span></span>
+<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#group_by(Year) %&gt;% </span></span>
+<span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#mutate(gi_star = local_gstar_perm(</span></span>
+<span id="cb98-4"><a href="#cb98-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#GDPPC, nb, wt)) %&gt;% </span></span>
+<span id="cb98-5"><a href="#cb98-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">#tidyr::unnest(gi_star)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="emerging-hotspot-analysis-1" class="level2">
+<h2 class="anchored" data-anchor-id="emerging-hotspot-analysis-1">7.2 Emerging Hotspot Analysis</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb99"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ehsa &lt;- emerging_hotspot_analysis(</span></span>
+<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#x = thai_st, </span></span>
+<span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#.var = "revenue_all", </span></span>
+<span id="cb99-4"><a href="#cb99-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#k = 1, </span></span>
+<span id="cb99-5"><a href="#cb99-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">#nsim = 99</span></span>
+<span id="cb99-6"><a href="#cb99-6" aria-hidden="true" tabindex="-1"></a><span class="co">#)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb100"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="co">#ggplot(data = ehsa,</span></span>
+<span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>       <span class="co">#aes(x = classification)) +</span></span>
+<span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#geom_bar()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
