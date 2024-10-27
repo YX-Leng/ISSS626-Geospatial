@@ -169,7 +169,6 @@ test_data_sp <- test_data %>%
 test_data_sp
 ```
 
-
 ## Preparing coordinates data
 
 ### Extracting coordinates data
