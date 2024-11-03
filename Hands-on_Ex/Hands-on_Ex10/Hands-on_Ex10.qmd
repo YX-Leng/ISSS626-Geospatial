@@ -1,0 +1,15 @@
+---
+title: "Hands-on Exercise 10"
+author: "Leng Yi Xiu"
+date: "Nov 3 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  message: false
+  freeze: true
+---
+
+# 10a: Processing and Visualising Flow Data
+
+# 10b: Calibrating Spatial Interaction Models
