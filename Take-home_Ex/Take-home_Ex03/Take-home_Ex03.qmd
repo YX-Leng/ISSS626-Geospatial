@@ -1,5 +1,5 @@
 ---
-title: "Take-home Exercise 3: Predicting HDB Resale Prices with Geographically Weighted Machine Learning Methods"
+title: "Take-home Exercise 3: Modelling Geography of Financial Inclusion with Geographically Weighted Methods"
 author: "Leng Yi Xiu"
 date: "Nov 2 2024"
 date-modified: "last-modified"
@@ -10,109 +10,138 @@ execute:
   freeze: true
 ---
 
-::: {style="font-size: 1.50em"}
+# 1 Overview
+
+Tanzania is one of the Africa’s fastest growing economies with nearly 7 percent annual national GDP growth since 2000. Despite the robust economic growth, widespread poverty persists. **Approximately 49% of Tanzania’s population lives below the international extreme poverty line.** This could be due to the lack of financial inclusion - the availability and equality of opportunities to access financial services such as banking, loan, equity and insurance products.
+
+## 1.1 Objective
+
+The objective of this exercise is to build an exploratory model that determines factors affecting financial inclusion by using **non-spatial regression** and **geographically weighted regression methods**.
+
+Examples of **independent** factors include demographics (rural vs urban), marital status, gender, financial education, access to technology etc.
+
+Examples of **dependent** factors include savings, financial situation, free access to banks, insurance coverage etc.
+
+------------------------------------------------------------------------
+
+# 2 Getting Started
+
+The code chunk below installs and loads **olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary** packages into R environment:
+
 ```{r}
-pacman::p_load(tidyverse, sf, httr, jsonlite, rvest)
+pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary)
+```
+
+------------------------------------------------------------------------
+
+# 3 Data Preparation
+
+For the purpose of this exercise, we will be using two data sets:
+
+1.  District level boundary GIS data for Tanzania
+
+2.  FinScope Tanzania 2023 Survey results
+
+## 3.1 Importing data into R Environment
+
+::: panel-tabset
+## Geospatial
+
+```{r}
+GB = st_read(dsn = "data/rawdata/geospatial", layer = "geoBoundaries-TZA-ADM2")
+```
+
+💡 Updating CRS information
+
+```{r}
+st_crs(GB) <- 4210
+GB <- st_transform(GB, crs = 32736)
+head(GB, 5)
+```
+
+## Aspatial
+
+```{r}
+Tanz_raw = read_csv("data/rawdata/aspatial/FinScope Tanzania 2023_Individual Main Data_FINAL.csv")
 ```
 
 ```{r}
-resale <- read_csv("data/rawdata/resale2017.csv") %>%
-  filter(month >= "2023-01" & month <= "2024-09")
+head(Tanz_raw, 5)
 ```
 
-```{r}
-resale_tidy <- resale %>%
-  mutate(address = paste(block,street_name)) %>%
-  mutate(remaining_lease_yr = as.integer(
-    str_sub(remaining_lease, 0, 2)))%>%
-  mutate(remaining_lease_mth = as.integer(
-    str_sub(remaining_lease, 9, 11)))
-```
+💡 Count number of unique dist_name
 
 ```{r}
-resale_selected <- resale_tidy %>%
-  filter(month == "2024-09")
-```
-
-```{r}
-add_list <- sort(unique(resale_selected$address))
-```
-
-```{r}
-get_coords <- function(add_list){
-  
-  # Create a data frame to store all retrieved coordinates
-  postal_coords <- data.frame()
-    
-  for (i in add_list){
-    #print(i)
-
-    r <- GET('https://www.onemap.gov.sg/api/common/elastic/search?',
-           query=list(searchVal=i,
-                     returnGeom='Y',
-                     getAddrDetails='Y'))
-    data <- fromJSON(rawToChar(r$content))
-    found <- data$found
-    res <- data$results
-    
-    # Create a new data frame for each address
-    new_row <- data.frame()
-    
-    # If single result, append 
-    if (found == 1){
-      postal <- res$POSTAL 
-      lat <- res$LATITUDE
-      lng <- res$LONGITUDE
-      new_row <- data.frame(address= i, 
-                            postal = postal, 
-                            latitude = lat, 
-                            longitude = lng)
-    }
-    
-    # If multiple results, drop NIL and append top 1
-    else if (found > 1){
-      # Remove those with NIL as postal
-      res_sub <- res[res$POSTAL != "NIL", ]
-      
-      # Set as NA first if no Postal
-      if (nrow(res_sub) == 0) {
-          new_row <- data.frame(address= i, 
-                                postal = NA, 
-                                latitude = NA, 
-                                longitude = NA)
-      }
-      
-      else{
-        top1 <- head(res_sub, n = 1)
-        postal <- top1$POSTAL 
-        lat <- top1$LATITUDE
-        lng <- top1$LONGITUDE
-        new_row <- data.frame(address= i, 
-                              postal = postal, 
-                              latitude = lat, 
-                              longitude = lng)
-      }
-    }
-
-    else {
-      new_row <- data.frame(address= i, 
-                            postal = NA, 
-                            latitude = NA, 
-                            longitude = NA)
-    }
-    
-    # Add the row
-    postal_coords <- rbind(postal_coords, new_row)
-  }
-  return(postal_coords)
-}
-```
-
-```{r}
-coords <- get_coords(add_list)
-```
-
-```{r}
-write_rds(coords, "data/rds/coords.rds")
+Tanz_raw %>%
+  count(dist_name) %>%
+  print()
 ```
 :::
+
+## 3.2 Geospatial: Converting Multipolygon to Polygon
+
+As the district level boundary GIS data in multipolygon form will cause overlays or intersections, it is more intuitive to calculate the area of each polygon and group them together by the unique district name and then select the largest polygon by area.
+
+💡 Calculate the area of each polygon
+
+```{r}
+sf_GB <- GB %>%
+  st_cast("POLYGON") %>%
+  mutate(area = st_area(.))
+```
+
+💡 Group and select the largest polygon by area
+
+```{r}
+GB_clean <- sf_GB %>%
+  group_by(shapeName) %>%
+  filter(area == max(area)) %>%
+  ungroup() %>%
+  select(-area) %>%
+  select(shapeName)
+```
+
+## 3.3 Aspatial: Filtering columns for information required
+
+As the FinScope Tanzania 2023 dataset contains 721 variables and not all variables will be used in our analysis, we will filter for the necessary independent and dependent variables based to analyse on:
+
+\(a\) how cluster type, gender and access to technology affects financial situation,
+
+\(b\) how cluster type, gender and access to technology affects savings, and
+
+\(c\) how cluster type, gender and access to technology affects insurance coverage for the Tanzanians.
+
+```{r}
+Tanz_filter <- Tanz_raw %>%
+  select(dist_name, clustertype, c9, c23__1,c23__2,c23__3,e_7_n_3,e_7_n_4,F4_4,ins2,Household_weight,population_wt)
+```
+
+## 3.4 Aspatial: Rename Columns
+
+```{r}
+Tanz_filter <- Tanz_filter %>%
+  rename(
+    Gender = c9, 
+    Access_MobilePhone = c23__1,
+    Access_Internet = c23__2,
+    Access_Computer = c23__3,
+    Savings_Emerg = e_7_n_3,
+    Fin_Situation = e_7_n_4,
+    Savings_Type = F4_4,
+    Insurance = ins2
+    )
+```
+
+```{r}
+head(Tanz_filter,5)
+```
+
+## 3.5 Perform relational join
+
+```{r}
+
+```
+
+------------------------------------------------------------------------
+
+# 4 Exploratory Data Analysis (EDA)
