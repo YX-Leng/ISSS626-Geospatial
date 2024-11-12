@@ -719,4 +719,3 @@ Interesting to note that the province of Chonburi also shows positive Local Mora
        #aes(x = classification)) +
   #geom_bar()
 ```
-
