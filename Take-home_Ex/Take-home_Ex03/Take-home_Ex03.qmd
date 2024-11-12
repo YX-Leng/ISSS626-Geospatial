@@ -105,15 +105,16 @@ GB_clean <- sf_GB %>%
 
 As the FinScope Tanzania 2023 dataset contains 721 variables and not all variables will be used in our analysis, we will filter for the necessary independent and dependent variables based to analyse on:
 
-\(a\) how cluster type, gender and access to technology affects financial situation,
+\(a\) how cluster type, gender and access to technology affects emergency savings, and
 
-\(b\) how cluster type, gender and access to technology affects savings, and
-
-\(c\) how cluster type, gender and access to technology affects insurance coverage for the Tanzanians.
+\(b\) how cluster type, gender and access to technology affects borrowing.
 
 ```{r}
 Tanz_filter <- Tanz_raw %>%
-  select(dist_name, clustertype, c9, c23__1,c23__2,c23__3,e_7_n_3,e_7_n_4,F4_4,ins2,Household_weight,population_wt)
+  select(dist_name, clustertype, c8c, c9, c23__1,c23__2,,e_7_n_3,F4_1__3,F4_1__5,F4_1__8,F4_1__13,F4_1__14,
+         g_2_3,g_5_1__1,g_5_1__2,g_5_1__3,g_5_1__5,g_5_1__6,g_5_1__7,
+         g_5_1__8,g_5_1__9,g_5_1__10,g_5_1__11,g_5_1__12,g_5_1__13,
+         ins3_1__3,ins3_1__9,Household_weight,population_wt)
 ```
 
 ## 3.4 Aspatial: Rename Columns
@@ -121,27 +122,386 @@ Tanz_filter <- Tanz_raw %>%
 ```{r}
 Tanz_filter <- Tanz_filter %>%
   rename(
+    Age = c8c,
     Gender = c9, 
     Access_MobilePhone = c23__1,
     Access_Internet = c23__2,
-    Access_Computer = c23__3,
     Savings_Emerg = e_7_n_3,
-    Fin_Situation = e_7_n_4,
-    Savings_Type = F4_4,
-    Insurance = ins2
+    Savings_SACCOS = F4_1__3,
+    Savings_MobileWallet = F4_1__5,
+    Savings_Group = F4_1__8,
+    Savings_Cash = F4_1__13,
+    Savings_Lifestock = F4_1__14,
+    Borrow_Amount = g_2_3,
+    Borrow_Bank = g_5_1__1,
+    Borrow_MFI = g_5_1__2,
+    Borrow_SACCOS = g_5_1__3,
+    Borrow_Gov = g_5_1__5,
+    Borrow_MM = g_5_1__6,
+    Borrow_Pension = g_5_1__7,
+    Borrow_Employer = g_5_1__8,
+    Borrow_Fam_Pay = g_5_1__9,
+    Borrow_Fam_NoPay = g_5_1__10,
+    Borrow_SavGroup = g_5_1__11,
+    Borrow_ML = g_5_1__12,
+    Borrow_Religious = g_5_1__13,
+    Insurance_Health = ins3_1__3,
+    Insurance_Life = ins3_1__9
     )
+```
+
+## 3.5 Aspatial: Convert Yes/No to a numeric vector
+
+```{r}
+Tanz_filter$clustertype <- as.numeric(Tanz_filter$clustertype == "Urban")
+Tanz_filter$Gender <- as.numeric(Tanz_filter$Gender == "Female")
+Tanz_filter$Access_MobilePhone <- as.numeric(Tanz_filter$Access_MobilePhone == "Yes")
+Tanz_filter$Access_Internet <- as.numeric(Tanz_filter$Access_Internet == "Yes")
+Tanz_filter$Savings_Emerg <- as.numeric(Tanz_filter$Savings_Emerg == "Yes")
+Tanz_filter$Savings_SACCOS <- as.numeric(Tanz_filter$Savings_SACCOS == "Yes")
+Tanz_filter$Savings_MobileWallet <- as.numeric(Tanz_filter$Savings_MobileWallet == "Yes")
+Tanz_filter$Savings_Group <- as.numeric(Tanz_filter$Savings_Group == "Yes")
+Tanz_filter$Savings_Cash <- as.numeric(Tanz_filter$Savings_Cash == "Yes")
+Tanz_filter$Savings_Lifestock <- as.numeric(Tanz_filter$Savings_Lifestock == "Yes")
+Tanz_filter$Borrow_Bank <- as.numeric(Tanz_filter$Borrow_Bank == "Yes")
+Tanz_filter$Borrow_MFI <- as.numeric(Tanz_filter$Borrow_MFI == "Yes")
+Tanz_filter$Borrow_SACCOS <- as.numeric(Tanz_filter$Borrow_SACCOS == "Yes")
+Tanz_filter$Borrow_Gov <- as.numeric(Tanz_filter$Borrow_Gov == "Yes")
+Tanz_filter$Borrow_MM <- as.numeric(Tanz_filter$Borrow_MM == "Yes")
+Tanz_filter$Borrow_Pension <- as.numeric(Tanz_filter$Borrow_Pension == "Yes")
+Tanz_filter$Borrow_Employer <- as.numeric(Tanz_filter$Borrow_Employer == "Yes")
+Tanz_filter$Borrow_Fam_Pay <- as.numeric(Tanz_filter$Borrow_Fam_Pay == "Yes")
+Tanz_filter$Borrow_Fam_NoPay <- as.numeric(Tanz_filter$Borrow_Fam_NoPay == "Yes")
+Tanz_filter$Borrow_SavGroup <- as.numeric(Tanz_filter$Borrow_SavGroup == "Yes")
+Tanz_filter$Borrow_ML <- as.numeric(Tanz_filter$Borrow_ML == "Yes")
+Tanz_filter$Borrow_Religious <- as.numeric(Tanz_filter$Borrow_Religious == "Yes")
+Tanz_filter$Insurance_Health <- as.numeric(Tanz_filter$Insurance_Health == "Yes")
+Tanz_filter$Insurance_Life <- as.numeric(Tanz_filter$Insurance_Life == "Yes")
+```
+
+```{r}
+Tanz_filter$Borrow_Amount <- ifelse(is.na(Tanz_filter$Borrow_Amount), 0, Tanz_filter$Borrow_Amount)
+Tanz_filter$Borrow_Amount <- as.numeric(Tanz_filter$Borrow_Amount)
+```
+
+```{r}
+Tanz_filter[is.na(Tanz_filter)] <- 0
 ```
 
 ```{r}
 head(Tanz_filter,5)
 ```
 
-## 3.5 Perform relational join
+## 3.6 Aspatial: Replace dist_name to avoid empty polygons
+
+::: callout-important
+## Assumptions
+
+For the dist_name that cannot match to the GIS data for Tanzania, it will be replaced by the values of its Mother District (for coast) or the nearest city.
+:::
 
 ```{r}
+Tanz_join <- Tanz_filter %>%
+  mutate(dist_name = case_when(
+    dist_name == "Tanganyika" ~ "Tanga Urban",
+    dist_name == "Kigamboni" ~ "Temeke",
+    dist_name == "Arumeru" & clustertype == "1" ~ "Arusha Urban",
+    dist_name == "Arumeru" & clustertype == "0" ~ "Arusha",
+    dist_name == "Butiama" ~ "Butiam",
+    dist_name == "Dodoma" ~ "Dodoma Urban",
+    dist_name == "Tanga" ~ "Tanga Urban",
+    dist_name == "Malinyi" ~ "Morogoro",
+    dist_name == "Magharibi B"~ "Magharibi",
+    dist_name == "Magharibi A"~ "Magharibi",
+    dist_name == "Ubungo"~ "Kinondoni",
+    dist_name == "Tabora"~ "Tabora Urban",
+    dist_name == "Kibiti"~ "Mkuranga",
+    TRUE ~ dist_name  # Keep all other values unchanged
+  ))
+```
 
+## 3.7 Perform relational join
+
+```{r}
+Tanz_final <- left_join(Tanz_join,GB_clean,
+                  by = c("dist_name" = "shapeName"), relationship = "many-to-many")
+```
+
+💡 Check for any empty polygons and class
+
+```{r}
+empty_polygons <- Tanz_final %>%
+  filter(st_is_empty(geometry)) %>%
+  select(dist_name) %>%
+  distinct()
+```
+
+```{r}
+class(Tanz_final)
+```
+
+## 3.8 Writing, reading data file to rds
+
+```{r}
+write_rds(Tanz_final, "data/rds/Tanz_final.rds")
+```
+
+```{r}
+Tanz_final <- read_rds("data/rds/Tanz_final.rds")
 ```
 
 ------------------------------------------------------------------------
 
-# 4 Exploratory Data Analysis (EDA)
+# 4 Non-Spatial Regression Methods
+
+## 4.1 Check for multi-collinearity
+
+```{r}
+Tanz_corr <- Tanz_final %>%
+  st_drop_geometry()
+corrplot::corrplot(cor(Tanz_corr[,2:27]), 
+                   diag = FALSE, 
+                   order = "AOE",
+                   tl.pos = "td", 
+                   tl.cex = 0.5, 
+                   method = "number", 
+                   type = "upper")
+```
+
+::: callout-important
+## Observations
+
+Since all the correlation values are **\< 0.8**, there is no signs of multi-collinearity.
+:::
+
+## 4.2 Build a non-spatial multi-linear regression
+
+### 4.2.1 How is borrowing amount affected by various independent variables?
+
+```{r}
+## need to log the borrowing amount to normalize extreme values
+Tanz_final$Borrow_Amount <- log(Tanz_final$Borrow_Amount + 1)
+```
+
+```{r}
+Borrowing_mlr <- lm(
+  Borrow_Amount ~ clustertype + Age + Gender + Access_MobilePhone + Access_Internet + Borrow_Bank + Borrow_MFI + 
+  Borrow_SACCOS + Borrow_Gov + Borrow_MM + Borrow_Pension + Borrow_Employer + Borrow_Fam_Pay + Borrow_Fam_NoPay +  
+  Borrow_SavGroup + Borrow_ML + Borrow_Religious,
+  data=Tanz_final)
+
+summary(Borrowing_mlr)
+```
+
+::: callout-important
+## Observations
+
+Adjusted R-squared of **\~80% (0.7963)** indicates a strong model fit and no overfitting.
+
+The model shows that the source of borrowing strongly influenced the borrowing amounts. Tanzanians tend to borrow from micro-finance institutions (MFI) and family/religious groups, but less from Pension (negative estimate). The negative estimate for gender also indicates that males borrow less than females (one-hot encoding female = 1).
+
+The significance of access to mobile phones to borrowing amount suggests that financial accessibility may be linked to mobile connectivity.
+:::
+
+::: panel-tabset
+## Multicollinearity Check
+
+```{r}
+ols_vif_tol(Borrowing_mlr)
+```
+
+## Non-Linearity Test
+
+```{r}
+ols_plot_resid_fit(Borrowing_mlr)
+```
+
+## Normality Assumption
+
+```{r}
+ols_plot_resid_hist(Borrowing_mlr)
+```
+
+## Spatial Autocorrelation Test
+
+```{r}
+mlr.output <- as.data.frame(Borrowing_mlr$residuals) 
+```
+
+```{r}
+Borrowing.res.sf <- cbind(Tanz_final, 
+                          MLR_RES = Borrowing_mlr$residuals)
+```
+
+```{r}
+Borrowing.sf <- st_as_sf(Borrowing.res.sf)
+Borrowing.sp <- as_Spatial(Borrowing.sf)
+Borrowing.sp
+```
+:::
+
+```{r}
+tmap_mode("view")
+tm_shape(GB_clean)+
+  tmap_options(check.and.fix = TRUE) +
+  tm_polygons(alpha = 0.4) +
+tm_shape(Borrowing.sp) +
+  tm_dots(col = "MLR_RES",
+          alpha = 0.6,
+          style = "quantile")
+tmap_mode("plot")
+```
+
+### 4.2.2 How is emergency savings affected by various independent variables?
+
+```{r}
+Savings_mlr <- lm(
+  Savings_Emerg ~ clustertype + Age + Gender + Access_MobilePhone + Access_Internet + Savings_SACCOS + 
+  Savings_MobileWallet + Savings_Group + Savings_Cash + Savings_Lifestock + Insurance_Health + Insurance_Life,
+  data=Tanz_final)
+
+summary(Savings_mlr)
+```
+
+::: callout-important
+## Observations
+
+Very low p-value (\< 2.2e-16) indicating that the model is statistically significant.
+
+-   **Gender**: The negative estimate (-0.04, p \< 0.001) suggests that males tend to save less for emergencies.
+
+-   **Age**: There’s a slight but significant negative effect of age on emergency savings, possibly indicating a reduced focus on emergency savings as age increases.
+
+-   **Insurance (Health and Life)**: high p-values indicative that there is no significant relationship with emergency savings.
+
+The low R-squared value suggests that emergency savings might be influenced by factors not captured in this model, such as level of inome, financial literacy, or household characteristics. Further exploration with additional variables could provide more insights into determinants of emergency savings.
+:::
+
+::: panel-tabset
+## Multicollinearity Check
+
+```{r}
+ols_vif_tol(Savings_mlr)
+```
+
+## Non-Linearity Test
+
+```{r}
+ols_plot_resid_fit(Savings_mlr)
+```
+
+## Normality Assumption
+
+```{r}
+ols_plot_resid_hist(Savings_mlr)
+```
+
+## Spatial Autocorrelation Test
+
+```{r}
+mlr.output <- as.data.frame(Savings_mlr$residuals) 
+```
+
+```{r}
+Savings.res.sf <- cbind(Tanz_final, 
+                          MLR_RES = Savings_mlr$residuals)
+```
+
+```{r}
+Savings.sf <- st_as_sf(Savings.res.sf)
+Savings.sp <- as_Spatial(Savings.sf)
+Savings.sp
+```
+:::
+
+```{r}
+tmap_mode("view")
+tm_shape(GB_clean)+
+  tmap_options(check.and.fix = TRUE) +
+  tm_polygons(alpha = 0.4) +
+tm_shape(Savings.sp) +
+  tm_dots(col = "MLR_RES",
+          alpha = 0.6,
+          style = "quantile")
+tmap_mode("plot")
+```
+
+# 5 Geographically Weighted Regression Methods
+
+**Geographically weighted regression (GWR)** is a spatial statistical technique that takes non-stationary variables into consideration and models the local relationships between these independent variables and an outcome of interest / dependent variable.
+
+## 5.1 Building Adaptive Bandwidth GWR Model for Borrowing
+
+```{r}
+bw.adaptive <- bw.gwr(formula = Borrow_Amount ~ clustertype + Age + Gender + Access_MobilePhone + Access_Internet + Borrow_Bank + Borrow_MFI + 
+                     Borrow_SACCOS + Borrow_Gov + Borrow_MM + Borrow_Pension + Borrow_Employer + Borrow_Fam_Pay + Borrow_Fam_NoPay +  
+                     Borrow_SavGroup + Borrow_ML + Borrow_Religious, 
+                     data=Borrowing.sp, 
+                     approach="CV", 
+                     kernel="gaussian", 
+                     adaptive=TRUE, 
+                     longlat=FALSE)
+```
+
+💡Calibrating the GWR model using adaptive bandwidth and gaussian kernel
+
+```{r}
+gwr.adaptive <- gwr.basic(formula = Borrow_Amount ~ clustertype + Age + Gender + Access_MobilePhone + Access_Internet + Borrow_Bank + Borrow_MFI + 
+                      Borrow_SACCOS + Borrow_Gov + Borrow_MM + Borrow_Pension + Borrow_Employer + Borrow_Fam_Pay + Borrow_Fam_NoPay +  
+                      Borrow_SavGroup + Borrow_ML + Borrow_Religious, 
+                      data=Borrowing.sp,
+                      bw=bw.adaptive, 
+                      kernel = 'gaussian', 
+                      adaptive=TRUE, 
+                      longlat = FALSE)
+```
+
+```{r}
+gwr.adaptive
+```
+
+::: callout-important
+## Observations
+
+**Coefficient Estimates:**
+
+-   **Clustertype**: Ranges from -0.149 to 0.406, showing a negative influence in some areas and positive in others. This suggests that certain clusters might either restrict or encourage borrowing differently based on location.
+
+-   **Gender**: Consistently negative - indicative that across locations, males may have lower borrowing amounts than females, with the effect stronger in some areas.
+
+-   **Access to Mobile and Internet**: Generally positive effects, suggesting that access to technology generally increases borrowing, although there are areas where internet access has a slight negative effect.
+
+**Borrowing Sources with Divergent Effects:**
+
+-   **Borrow_Gov**: Ranges widely from -5.30 to 12.53, showing that in some areas, government borrowing is linked to lower borrowing amounts, while in others, it has a high positive effect.
+
+-   **Borrow_Pension**: Large variability (-43.57 to 9.69), suggesting that pension borrowing strongly decreases borrowing amounts in some areas while having a positive effect in others.
+
+These results suggest that interventions aimed at influencing borrowing behavior could benefit from being **spatially targeted**. For example, policies could focus on enhancing mobile and internet access in regions where they are most effective or promoting specific borrowing sources depending on local impact.
+:::
+
+## 5.2 Building Adaptive Bandwidth GWR Model for Emergency Savings
+
+```{r}
+bw.adaptive2 <- bw.gwr(formula = Savings_Emerg ~ clustertype + Age + Gender + Access_MobilePhone + Access_Internet + Savings_SACCOS + 
+                       Savings_MobileWallet + Savings_Group + Savings_Cash + Savings_Lifestock + Insurance_Health + Insurance_Life, 
+                       data=Savings.sp, 
+                       approach="CV", 
+                       kernel="gaussian", 
+                       adaptive=TRUE, 
+                       longlat=FALSE)
+```
+
+```{r}
+gwr.adaptive2 <- gwr.basic(formula = Savings_Emerg ~ clustertype + Age + Gender + Access_MobilePhone + Access_Internet + Savings_SACCOS + 
+                       Savings_MobileWallet + Savings_Group + Savings_Cash + Savings_Lifestock + Insurance_Health + Insurance_Life, 
+                       data=Savings.sp,
+                       bw=bw.adaptive, 
+                       kernel = 'gaussian', 
+                       adaptive=TRUE, 
+                       longlat = FALSE)
+```
+
+```{r}
+gwr.adaptive2
+```
